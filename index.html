@@ -4,14 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>T.E.P.E. - Public Events</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="tepelogo.png">
+    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     
-    <!-- PayPal Error Trap -->
+    <!-- PayPal Error Trap (Must be before SDK) -->
     <script>
         window.paypalBootstrapError = false;
+        
+        // Define fallback immediately so the error handler can use it
         window.forceFallbackUI = function() {
             const container = document.getElementById('paypal-button-container');
             if (container) {
@@ -23,7 +28,9 @@
                 }
             }
         };
+
         window.addEventListener('error', function(e) {
+            // Catch specific iframe/host errors from PayPal SDK
             if (e.message && (e.message.includes('paypal') || e.message.includes('window host') || e.message.includes('Bootstrap Error') || e.filename?.includes('paypal'))) {
                 console.warn("PayPal SDK Bootstrap Error detected. Switching to Test Mode.");
                 window.paypalBootstrapError = true;
@@ -60,6 +67,7 @@
         .carousel-image { transition: opacity 2s ease-in-out; will-change: opacity; }
         .calendar-day { min-height: 80px; }
         .calendar-day:hover { background-color: #EFF6FF; }
+        
         /* Custom Scrollbar for Modal */
         .custom-scroll::-webkit-scrollbar { width: 6px; }
         .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
@@ -78,15 +86,17 @@
     <nav class="bg-earth-brown text-white fixed w-full z-50 shadow-lg top-0">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-20">
+                <!-- Logo -->
                 <div class="flex items-center space-x-3 cursor-pointer" onclick="window.scrollTo(0,0)">
-                    <svg class="h-10 w-10 text-earth-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3L2 21h20L12 3z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6l-3 15M12 6l3 15" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14h6" />
-                    </svg>
+                    <!-- REPLACED SVG WITH LOGO IMAGE + FALLBACK -->
+                    <img src="tepelogo.png" 
+                         alt="T.E.P.E." 
+                         class="h-10 w-10 rounded-full object-cover border-2 border-earth-green"
+                         onerror="this.onerror=null; this.src='https://placehold.co/40x40/2E7D32/FFFFFF?text=TEPE';">
                     <span class="font-bold text-2xl tracking-wider">T.E.P.E.</span>
                 </div>
                 
+                <!-- Desktop Menu -->
                 <div class="hidden md:flex items-center space-x-4">
                     <a href="#home" class="hover:bg-earth-green px-3 py-2 rounded-md text-sm font-medium transition">Home</a>
                     <a href="#events" class="hover:bg-earth-green px-3 py-2 rounded-md text-sm font-medium transition">Events</a>
@@ -100,6 +110,7 @@
                         Fan Login
                     </button>
                     
+                    <!-- Buyer Profile & My Tickets -->
                     <div id="buyer-profile" class="hidden items-center space-x-3 ml-4 bg-gray-900 px-3 py-1 rounded-full border border-gray-700">
                         <button onclick="document.getElementById('my-tickets-modal').classList.remove('hidden')" class="text-xs font-bold text-earth-green hover:text-white flex items-center">
                             <i class="ph ph-ticket mr-1"></i> My Tickets
@@ -119,14 +130,19 @@
             </div>
         </div>
 
-        <!-- Mobile Menu -->
+        <!-- Mobile Menu (Hidden by default) -->
         <div id="mobile-menu" class="hidden md:hidden bg-earth-brown border-t border-gray-800 pb-4">
             <a href="#home" onclick="document.getElementById('mobile-menu').classList.add('hidden')" class="block px-4 py-3 hover:bg-gray-800 border-b border-gray-800">Home</a>
             <a href="#events" onclick="document.getElementById('mobile-menu').classList.add('hidden')" class="block px-4 py-3 hover:bg-gray-800 border-b border-gray-800">Events</a>
             <a href="#calendar" onclick="document.getElementById('mobile-menu').classList.add('hidden')" class="block px-4 py-3 hover:bg-gray-800 border-b border-gray-800">Calendar</a>
             <a href="organizer.html" target="_blank" class="block px-4 py-3 text-earth-green font-bold hover:bg-gray-800 border-b border-gray-800">Become An Organizer</a>
+            
+            <!-- Mobile Auth -->
             <div class="px-4 py-4">
-                <button id="mobile-buyer-login-btn" onclick="toggleBuyerModal(); document.getElementById('mobile-menu').classList.add('hidden')" class="w-full bg-earth-green hover:bg-blue-700 text-white px-4 py-3 rounded-md text-sm font-bold shadow-md transition text-center">Fan Login</button>
+                <button id="mobile-buyer-login-btn" onclick="toggleBuyerModal(); document.getElementById('mobile-menu').classList.add('hidden')" class="w-full bg-earth-green hover:bg-blue-700 text-white px-4 py-3 rounded-md text-sm font-bold shadow-md transition text-center">
+                    Fan Login
+                </button>
+                
                 <div id="mobile-buyer-profile" class="hidden flex-col space-y-2">
                     <div class="text-sm text-gray-400">Logged in as: <span id="mobile-buyer-email-display" class="text-earth-blue font-bold"></span></div>
                     <button onclick="document.getElementById('my-tickets-modal').classList.remove('hidden'); document.getElementById('mobile-menu').classList.add('hidden')" class="w-full bg-gray-800 text-white px-4 py-2 rounded text-sm transition">My Tickets</button>
@@ -154,12 +170,14 @@
                 <h2 class="text-3xl font-bold text-earth-brown uppercase tracking-wide">Upcoming Experiences</h2>
                 <div class="w-24 h-1 bg-earth-green mx-auto mt-4"></div>
             </div>
+            <!-- Dynamic Grid Container -->
             <div id="public-events-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
                 <div class="col-span-full text-center py-10">
                     <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-earth-green"></div>
                     <p class="mt-2 text-gray-500">Loading events...</p>
                 </div>
             </div>
+            <!-- Error Container (Hidden by default) -->
             <div id="error-container" class="hidden text-center py-10 bg-red-50 p-6 rounded-lg border border-red-200">
                 <i class="ph ph-warning-circle text-4xl text-red-500 mb-2"></i>
                 <p id="error-title" class="text-red-600 font-bold text-lg">Connection Issue</p>
@@ -187,6 +205,7 @@
                     <div class="py-3 text-center text-sm font-bold text-gray-500">FRI</div>
                     <div class="py-3 text-center text-sm font-bold text-gray-500">SAT</div>
                 </div>
+                <!-- Dynamic Calendar Grid -->
                 <div id="calendar-grid" class="grid grid-cols-7 bg-white"></div>
             </div>
         </div>
@@ -729,6 +748,7 @@
                 paypal.Buttons({
                     style: { shape: 'rect', color: 'blue', layout: 'vertical', label: 'checkout' },
                     createOrder: function(data, actions) {
+                        const total = (parseFloat(window.selectedTier.price) * window.selectedQty).toFixed(2);
                         return actions.order.create({
                             application_context: { shipping_preference: 'NO_SHIPPING' },
                             purchase_units: [{
