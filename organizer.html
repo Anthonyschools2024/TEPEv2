@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>T.E.P.E. Organizer Portal</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        earth: {
+                            brown: '#000000', // Black
+                            green: '#2563EB', // Electric Blue
+                            blue: '#60A5FA',  // Sky Blue
+                            sand: '#F1F5F9',  // Slate 100
+                            dark: '#0F172A'   // Slate 900
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Segoe UI', 'Roboto', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-earth-sand text-earth-dark font-sans antialiased h-screen overflow-hidden">
+
+    <!-- ================= LOGIN/SIGNUP VIEW (Default) ================= -->
+    <div id="view-login" class="h-full flex items-center justify-center bg-earth-brown relative">
+        <div class="absolute inset-0 opacity-30 bg-[url('https://images.unsplash.com/photo-1459749411177-29432dc29afa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center"></div>
+        
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md relative z-10">
+            <div class="text-center mb-8">
+                <div class="flex items-center justify-center space-x-2 mb-2">
+                    <svg class="h-8 w-8 text-earth-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3L2 21h20L12 3z" />
+                    </svg>
+                    <span class="font-bold text-2xl tracking-wider">T.E.P.E.</span>
+                </div>
+                <h2 id="auth-title" class="text-xl font-bold text-gray-800">Organizer Login</h2>
+                <p id="auth-subtitle" class="text-sm text-gray-500">Manage your events and sales</p>
+            </div>
+
+            <form id="auth-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Organizer Email</label>
+                    <input type="email" id="email" required class="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-earth-green outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Password</label>
+                    <input type="password" id="password" required class="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-earth-green outline-none">
+                </div>
+                <p id="auth-error" class="text-red-500 text-sm hidden"></p>
+                
+                <button type="submit" id="auth-btn" class="w-full bg-earth-green hover:bg-blue-700 text-white font-bold py-3 rounded transition">Access Dashboard</button>
+            </form>
+
+            <div class="mt-6 text-center text-sm border-t pt-4">
+                <p id="auth-toggle-text" class="text-gray-600">
+                    New organizer? 
+                    <button onclick="authManager.toggleMode()" class="text-earth-green font-bold hover:underline ml-1">Create Account</button>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= DASHBOARD VIEW (Authenticated) ================= -->
+    <div id="view-dashboard" class="hidden h-full flex flex-col">
+        <!-- Top Header -->
+        <header class="bg-white shadow-sm h-16 flex items-center justify-between px-6 z-20">
+            <div class="flex items-center space-x-3">
+                <svg class="h-8 w-8 text-earth-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3L2 21h20L12 3z" />
+                </svg>
+                <span class="font-bold text-xl tracking-wider">Organizer Dashboard</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span id="user-display" class="text-sm text-gray-600 font-medium">organizer@tepe.com</span>
+                <button onclick="authManager.logout()" class="text-red-500 hover:text-red-700 font-medium text-sm">Logout</button>
+            </div>
+        </header>
+
+        <div class="flex flex-1 overflow-hidden">
+            <!-- Sidebar -->
+            <aside class="bg-earth-brown text-white w-64 flex-col py-6 px-4 space-y-2 hidden md:flex">
+                <button onclick="ui.showSection('overview')" id="nav-overview" class="flex items-center space-x-3 px-4 py-3 bg-earth-green rounded text-white transition text-sm font-bold">
+                    <i class="ph ph-squares-four text-lg"></i><span>Overview</span>
+                </button>
+                <button onclick="ui.showSection('create')" id="nav-create" class="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800 rounded transition text-sm font-bold">
+                    <i class="ph ph-plus-circle text-lg"></i><span>Create Event</span>
+                </button>
+            </aside>
+
+            <!-- Content Area -->
+            <main class="flex-1 bg-earth-sand p-6 overflow-y-auto">
+                
+                <!-- Section: Overview -->
+                <div id="section-overview" class="dash-section">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-gray-800">Performance Overview</h2>
+                        <button onclick="ui.showSection('create')" class="bg-earth-green hover:bg-blue-700 text-white px-4 py-2 rounded shadow text-sm font-bold flex items-center md:hidden">
+                            <i class="ph ph-plus mr-2"></i> New
+                        </button>
+                    </div>
+
+                    <!-- Stats -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="bg-white rounded-lg shadow p-5 border-l-4 border-earth-green">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="text-sm text-gray-500 font-semibold">Active Events</p>
+                                    <p id="stat-active-count" class="text-2xl font-bold text-gray-800">-</p>
+                                </div>
+                                <i class="ph ph-calendar-check text-2xl text-earth-green"></i>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-lg shadow p-5 border-l-4 border-earth-blue">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="text-sm text-gray-500 font-semibold">Total Revenue</p>
+                                    <p class="text-2xl font-bold text-gray-800">$0.00</p>
+                                </div>
+                                <i class="ph ph-currency-dollar text-2xl text-earth-blue"></i>
+                            </div>
+                        </div>
+                         <div class="bg-white rounded-lg shadow p-5 border-l-4 border-purple-500">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="text-sm text-gray-500 font-semibold">Tickets Sold</p>
+                                    <p class="text-2xl font-bold text-gray-800">0</p>
+                                </div>
+                                <i class="ph ph-ticket text-2xl text-purple-500"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Events Table -->
+                    <div class="bg-white rounded shadow overflow-hidden">
+                        <div class="px-6 py-4 border-b">
+                            <h3 class="font-bold text-gray-700">Your Events</h3>
+                        </div>
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Event Details</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date/Time</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tickets Configured</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Manage</th>
+                                </tr>
+                            </thead>
+                            <tbody id="events-table-body" class="bg-white divide-y divide-gray-200">
+                                <!-- JS Injected -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Section: Create Event with Ticket Tiers -->
+                <div id="section-create" class="dash-section hidden max-w-4xl mx-auto">
+                    <div class="bg-white rounded-lg shadow-lg p-8">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-4">Publish New Event</h2>
+                        <form id="create-event-form" class="space-y-6">
+                            <!-- Basic Details -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700">Event Title</label>
+                                    <input type="text" id="evt-title" required class="mt-1 w-full px-4 py-2 border rounded focus:ring-2 focus:ring-earth-green outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Date</label>
+                                    <input type="date" id="evt-date" required class="mt-1 w-full px-4 py-2 border rounded focus:ring-2 focus:ring-earth-green outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Time</label>
+                                    <input type="time" id="evt-time" required class="mt-1 w-full px-4 py-2 border rounded focus:ring-2 focus:ring-earth-green outline-none">
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700">Location</label>
+                                    <input type="text" id="evt-location" required class="mt-1 w-full px-4 py-2 border rounded focus:ring-2 focus:ring-earth-green outline-none">
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-medium text-gray-700">Description</label>
+                                    <textarea id="evt-desc" rows="3" class="mt-1 w-full px-4 py-2 border rounded focus:ring-2 focus:ring-earth-green outline-none"></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Ticket Tiers Section -->
+                            <div class="border-t pt-6">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h3 class="text-lg font-bold text-gray-800">Ticket Tiers & Pricing</h3>
+                                    <button type="button" onclick="tierManager.addTier()" class="text-sm bg-blue-50 text-blue-600 px-3 py-1 rounded hover:bg-blue-100 font-semibold">+ Add Tier</button>
+                                </div>
+                                
+                                <div id="tiers-container" class="space-y-3">
+                                    <!-- Dynamic Tiers inserted here -->
+                                </div>
+                            </div>
+
+                            <!-- Image Upload -->
+                            <div class="border-t pt-6">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Event Cover Image</label>
+                                <div class="flex items-center justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md cursor-pointer hover:bg-gray-50 relative">
+                                    <input type="file" id="evt-image" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="dataManager.handleImagePreview(this)">
+                                    <div class="text-center" id="image-preview-area">
+                                        <i class="ph ph-image text-4xl text-gray-400"></i>
+                                        <p class="text-sm text-gray-600">Click to upload (Max 500KB)</p>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="evt-image-base64">
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="flex justify-end space-x-3 pt-4 border-t">
+                                <button type="button" onclick="ui.showSection('overview')" class="px-4 py-2 border rounded text-gray-700 hover:bg-gray-50">Cancel</button>
+                                <button type="submit" class="px-6 py-2 bg-earth-green text-white font-bold rounded hover:bg-blue-700 shadow">Publish Event</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- Firebase Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, deleteDoc, doc, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // FIREBASE TEPE-V2 CONFIG
+        const firebaseConfig = {
+            apiKey: "AIzaSyClJ0s2rXDFAMRJAQdjIlO7GsmH4mR1Vcs",
+            authDomain: "tepe-v2.firebaseapp.com",
+            projectId: "tepe-v2",
+            storageBucket: "tepe-v2.firebasestorage.app",
+            messagingSenderId: "830338278786",
+            appId: "1:830338278786:web:98a7eabb282b6518d09b9b",
+            measurementId: "G-P4L207DXG6"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        let currentUser = null;
+        let isLoginMode = true;
+        let unsubscribe = null; // Store listener to detach on logout
+
+        // --- TIER MANAGER ---
+        window.tierManager = {
+            addTier: (name = '', price = '', capacity = '') => {
+                const container = document.getElementById('tiers-container');
+                const id = Date.now(); // Simple ID
+                const div = document.createElement('div');
+                div.className = "grid grid-cols-12 gap-3 items-end tier-row p-3 bg-gray-50 rounded border border-gray-200";
+                div.innerHTML = `
+                    <div class="col-span-5">
+                        <label class="block text-xs font-bold text-gray-500">Tier Name</label>
+                        <input type="text" value="${name}" class="tier-name w-full p-2 border rounded text-sm" placeholder="e.g. VIP, General Admission">
+                    </div>
+                    <div class="col-span-3">
+                        <label class="block text-xs font-bold text-gray-500">Price ($)</label>
+                        <input type="number" value="${price}" class="tier-price w-full p-2 border rounded text-sm" placeholder="0.00">
+                    </div>
+                    <div class="col-span-3">
+                        <label class="block text-xs font-bold text-gray-500">Capacity</label>
+                        <input type="number" value="${capacity}" class="tier-capacity w-full p-2 border rounded text-sm" placeholder="100">
+                    </div>
+                    <div class="col-span-1 text-center">
+                        <button type="button" onclick="this.parentElement.parentElement.remove()" class="text-red-500 hover:bg-red-50 p-2 rounded"><i class="ph ph-trash"></i></button>
+                    </div>
+                `;
+                container.appendChild(div);
+            },
+            getTiers: () => {
+                const tiers = [];
+                document.querySelectorAll('.tier-row').forEach(row => {
+                    const name = row.querySelector('.tier-name').value;
+                    const price = row.querySelector('.tier-price').value;
+                    const capacity = row.querySelector('.tier-capacity').value;
+                    if(name && price) {
+                        tiers.push({ name, price, capacity });
+                    }
+                });
+                return tiers;
+            }
+        };
+
+        // --- UI ---
+        window.ui = {
+            showSection: (section) => {
+                document.querySelectorAll('.dash-section').forEach(el => el.classList.add('hidden'));
+                document.getElementById(`section-${section}`).classList.remove('hidden');
+                
+                document.getElementById('nav-overview').className = "flex items-center space-x-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800 rounded transition text-sm font-bold";
+                document.getElementById('nav-create').className = "flex items-center space-x-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800 rounded transition text-sm font-bold";
+                
+                const activeBtn = document.getElementById(`nav-${section}`);
+                activeBtn.className = "flex items-center space-x-3 px-4 py-3 bg-earth-green rounded text-white transition text-sm font-bold";
+            }
+        };
+
+        // --- AUTH ---
+        window.authManager = {
+            toggleMode: () => {
+                isLoginMode = !isLoginMode;
+                const title = document.getElementById('auth-title');
+                const btn = document.getElementById('auth-btn');
+                const toggleText = document.getElementById('auth-toggle-text');
+                const sub = document.getElementById('auth-subtitle');
+                const err = document.getElementById('auth-error');
+
+                err.classList.add('hidden'); 
+
+                if(isLoginMode) {
+                    title.innerText = "Organizer Login";
+                    sub.innerText = "Manage your events and sales";
+                    btn.innerText = "Access Dashboard";
+                    toggleText.innerHTML = `New organizer? <button onclick="authManager.toggleMode()" class="text-earth-green font-bold hover:underline ml-1">Create Account</button>`;
+                } else {
+                    title.innerText = "Create Organizer Account";
+                    sub.innerText = "Start selling tickets today";
+                    btn.innerText = "Create Account";
+                    toggleText.innerHTML = `Already have an account? <button onclick="authManager.toggleMode()" class="text-earth-green font-bold hover:underline ml-1">Login</button>`;
+                }
+            },
+            handleAuth: async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                const errEl = document.getElementById('auth-error');
+                
+                try {
+                    if(isLoginMode) {
+                        await signInWithEmailAndPassword(auth, email, password);
+                    } else {
+                        await createUserWithEmailAndPassword(auth, email, password);
+                    }
+                } catch (error) {
+                    errEl.innerText = error.message.replace('Firebase: ', '');
+                    errEl.classList.remove('hidden');
+                }
+            },
+            logout: () => {
+                if (unsubscribe) unsubscribe(); // Stop listening to this user's data
+                signOut(auth);
+            }
+        };
+
+        // --- DATA ---
+        window.dataManager = {
+            handleImagePreview: (input) => {
+                if (input.files && input.files[0]) {
+                    const file = input.files[0];
+                    if(file.size > 500000) { alert("Max size 500KB"); input.value=""; return; }
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        document.getElementById('image-preview-area').innerHTML = `<img src="${e.target.result}" class="h-40 w-full object-cover rounded">`;
+                        document.getElementById('evt-image-base64').value = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            },
+            createEvent: async (e) => {
+                e.preventDefault();
+                if(!currentUser) return;
+                
+                const tiers = tierManager.getTiers();
+                if(tiers.length === 0) {
+                    alert("Please add at least one ticket tier (e.g. General Admission)");
+                    return;
+                }
+
+                try {
+                    const eventData = {
+                        title: document.getElementById('evt-title').value,
+                        date: document.getElementById('evt-date').value,
+                        time: document.getElementById('evt-time').value,
+                        location: document.getElementById('evt-location').value,
+                        description: document.getElementById('evt-desc').value,
+                        image: document.getElementById('evt-image-base64').value || 'https://images.unsplash.com/photo-1459749411177-29432dc29afa?auto=format&fit=crop&w=800&q=60',
+                        tiers: tiers, // Save Tiers
+                        createdAt: new Date(),
+                        creatorId: currentUser.uid // IMPORTANT: Used for filtering
+                    };
+                    await addDoc(collection(db, "events"), eventData);
+                    alert("Published!");
+                    document.getElementById('create-event-form').reset();
+                    document.getElementById('tiers-container').innerHTML = ''; // Clear tiers
+                    tierManager.addTier('General Admission', '', '100'); // Reset default
+                    ui.showSection('overview');
+                } catch(err) { alert(err.message); }
+            },
+            deleteEvent: async (id) => {
+                if(confirm("Delete event?")) await deleteDoc(doc(db, "events", id));
+            },
+            initListener: () => {
+                if (!currentUser) return;
+                
+                // FIX: Query modified to avoid needing a composite index. Sorting is now done in JS.
+                const q = query(
+                    collection(db, "events"), 
+                    where("creatorId", "==", currentUser.uid)
+                );
+                
+                unsubscribe = onSnapshot(q, (snapshot) => {
+                    const tbody = document.getElementById('events-table-body');
+                    tbody.innerHTML = '';
+                    document.getElementById('stat-active-count').innerText = snapshot.size;
+                    
+                    if(snapshot.empty) {
+                        tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-gray-500">No events found. Create your first one!</td></tr>`;
+                        return;
+                    }
+
+                    // Convert to array and sort manually in JS
+                    let events = [];
+                    snapshot.forEach(docSnap => {
+                        events.push({ id: docSnap.id, ...docSnap.data() });
+                    });
+
+                    // Sort by date ascending
+                    events.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+                    events.forEach(evt => {
+                        const tierSummary = evt.tiers ? evt.tiers.map(t => `${t.name} ($${t.price})`).join(", ") : "No Tiers";
+
+                        tbody.innerHTML += `
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="h-10 w-10 flex-shrink-0"><img class="h-10 w-10 rounded-full object-cover" src="${evt.image}"></div>
+                                        <div class="ml-4"><div class="text-sm font-medium text-gray-900">${evt.title}</div></div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-500">${evt.date} at ${evt.time}</td>
+                                <td class="px-6 py-4 text-xs text-gray-500 font-mono">${tierSummary}</td>
+                                <td class="px-6 py-4 text-right"><button onclick="dataManager.deleteEvent('${evt.id}')" class="text-red-600 hover:text-red-900 text-sm font-bold">Delete</button></td>
+                            </tr>
+                        `;
+                    });
+                }, (error) => {
+                    console.error("Organizer Dashboard Error:", error);
+                });
+            }
+        };
+
+        // --- BINDINGS ---
+        document.getElementById('auth-form').addEventListener('submit', authManager.handleAuth);
+        document.getElementById('create-event-form').addEventListener('submit', dataManager.createEvent);
+
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            if (user) {
+                document.getElementById('view-login').classList.add('hidden');
+                document.getElementById('view-dashboard').classList.remove('hidden');
+                document.getElementById('user-display').innerText = user.email;
+                dataManager.initListener();
+                // Add default tier field if empty
+                if(document.getElementById('tiers-container').children.length === 0) {
+                    tierManager.addTier('General Admission');
+                }
+            } else {
+                document.getElementById('view-login').classList.remove('hidden');
+                document.getElementById('view-dashboard').classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
