@@ -78,7 +78,6 @@
     <nav class="bg-earth-brown text-white fixed w-full z-50 shadow-lg top-0">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-20">
-                <!-- Logo -->
                 <div class="flex items-center space-x-3 cursor-pointer" onclick="window.scrollTo(0,0)">
                     <svg class="h-10 w-10 text-earth-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3L2 21h20L12 3z" />
@@ -88,7 +87,6 @@
                     <span class="font-bold text-2xl tracking-wider">T.E.P.E.</span>
                 </div>
                 
-                <!-- Desktop Menu -->
                 <div class="hidden md:flex items-center space-x-4">
                     <a href="#home" class="hover:bg-earth-green px-3 py-2 rounded-md text-sm font-medium transition">Home</a>
                     <a href="#events" class="hover:bg-earth-green px-3 py-2 rounded-md text-sm font-medium transition">Events</a>
@@ -102,7 +100,6 @@
                         Fan Login
                     </button>
                     
-                    <!-- Buyer Profile & My Tickets -->
                     <div id="buyer-profile" class="hidden items-center space-x-3 ml-4 bg-gray-900 px-3 py-1 rounded-full border border-gray-700">
                         <button onclick="document.getElementById('my-tickets-modal').classList.remove('hidden')" class="text-xs font-bold text-earth-green hover:text-white flex items-center">
                             <i class="ph ph-ticket mr-1"></i> My Tickets
@@ -157,14 +154,12 @@
                 <h2 class="text-3xl font-bold text-earth-brown uppercase tracking-wide">Upcoming Experiences</h2>
                 <div class="w-24 h-1 bg-earth-green mx-auto mt-4"></div>
             </div>
-            <!-- Dynamic Grid Container -->
             <div id="public-events-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
                 <div class="col-span-full text-center py-10">
                     <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-earth-green"></div>
                     <p class="mt-2 text-gray-500">Loading events...</p>
                 </div>
             </div>
-            <!-- Error Container (Hidden by default) -->
             <div id="error-container" class="hidden text-center py-10 bg-red-50 p-6 rounded-lg border border-red-200">
                 <i class="ph ph-warning-circle text-4xl text-red-500 mb-2"></i>
                 <p id="error-title" class="text-red-600 font-bold text-lg">Connection Issue</p>
@@ -192,7 +187,6 @@
                     <div class="py-3 text-center text-sm font-bold text-gray-500">FRI</div>
                     <div class="py-3 text-center text-sm font-bold text-gray-500">SAT</div>
                 </div>
-                <!-- Dynamic Calendar Grid -->
                 <div id="calendar-grid" class="grid grid-cols-7 bg-white"></div>
             </div>
         </div>
@@ -210,7 +204,7 @@
         <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl relative flex flex-col md:flex-row overflow-hidden m-4 max-h-[90vh]">
             <button onclick="closeCheckout()" class="absolute top-4 right-4 z-50 bg-white rounded-full p-1 text-gray-500 hover:text-red-500 shadow-md"><i class="ph ph-x text-xl"></i></button>
             
-            <!-- Left: Event Summary -->
+            <!-- Left: Event Summary & Totals -->
             <div class="w-full md:w-5/12 bg-earth-sand border-r border-gray-200 flex flex-col relative">
                 <div class="h-40 w-full relative">
                     <img id="checkout-img" src="" class="w-full h-full object-cover">
@@ -220,47 +214,71 @@
                         <h3 id="checkout-title" class="text-lg font-bold leading-tight">Event Title</h3>
                     </div>
                 </div>
-                <div class="p-6 flex-1">
-                    <div class="flex items-start space-x-3 text-sm text-gray-600 mb-4">
+                <div class="p-6 flex-1 flex flex-col">
+                    <div class="flex items-start space-x-3 text-sm text-gray-600 mb-2">
                         <i class="ph ph-map-pin text-lg text-earth-green"></i>
                         <span id="checkout-location">Location</span>
                     </div>
-                    <div class="flex items-start space-x-3 text-sm text-gray-600">
+                    <div class="flex items-start space-x-3 text-sm text-gray-600 mb-4">
                         <i class="ph ph-clock text-lg text-earth-green"></i>
                         <span id="checkout-time">Time</span>
                     </div>
-                    <hr class="my-4 border-gray-300">
-                    <div class="flex justify-between items-center font-bold text-gray-800">
-                        <span>Total</span>
-                        <span id="checkout-total-display" class="text-xl text-earth-green">$0.00</span>
+                    
+                    <div class="mt-auto space-y-2 text-sm text-gray-600 border-t pt-4 border-gray-300">
+                        <div class="flex justify-between">
+                            <span>Subtotal</span>
+                            <span id="summ-subtotal">$0.00</span>
+                        </div>
+                        <div class="flex justify-between text-earth-green hidden" id="summ-discount-row">
+                            <span>Discount</span>
+                            <span id="summ-discount">-$0.00</span>
+                        </div>
+                        <div class="flex justify-between hidden" id="summ-tax-row">
+                            <span>Tax <span id="summ-tax-rate" class="text-xs"></span></span>
+                            <span id="summ-tax">$0.00</span>
+                        </div>
+                        <div class="flex justify-between items-center font-bold text-gray-800 text-lg pt-2 border-t border-gray-200 mt-2">
+                            <span>Total</span>
+                            <span id="checkout-total-display" class="text-xl text-earth-green">$0.00</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Right: Ticket Selection & Pay -->
+            <!-- Right: Selection & Payment -->
             <div class="w-full md:w-7/12 bg-white p-6 md:p-8 flex flex-col custom-scroll overflow-y-auto">
                 <h2 class="text-2xl font-bold text-earth-brown mb-2">Select Tickets</h2>
                 <p class="text-xs text-gray-500 mb-6">Secure checkout powered by PayPal</p>
 
                 <!-- Ticket Tiers Container -->
-                <div id="ticket-tiers-container" class="space-y-3 mb-4">
-                    <!-- Dynamic Tiers Injected Here -->
-                </div>
+                <div id="ticket-tiers-container" class="space-y-3 mb-4"></div>
 
-                <!-- Quantity Selector -->
-                <div class="mb-6 flex items-center justify-between bg-gray-50 p-3 rounded-lg border border-gray-200">
-                    <span class="text-sm font-bold text-gray-700">Quantity</span>
-                    <div class="flex items-center space-x-4">
-                        <button onclick="window.changeQty(-1)" class="w-8 h-8 rounded-full bg-white border border-gray-300 hover:bg-gray-100 flex items-center justify-center font-bold text-gray-600 transition">-</button>
-                        <span id="qty-display" class="font-bold text-lg w-6 text-center text-earth-brown">1</span>
-                        <button onclick="window.changeQty(1)" class="w-8 h-8 rounded-full bg-white border border-gray-300 hover:bg-gray-100 flex items-center justify-center font-bold text-gray-600 transition">+</button>
+                <!-- Quantity & Promo -->
+                <div class="space-y-4 mb-6">
+                     <!-- Quantity -->
+                    <div class="flex items-center justify-between bg-gray-50 p-3 rounded-lg border border-gray-200">
+                        <span class="text-sm font-bold text-gray-700">Quantity</span>
+                        <div class="flex items-center space-x-4">
+                            <button onclick="window.changeQty(-1)" class="w-8 h-8 rounded-full bg-white border border-gray-300 hover:bg-gray-100 flex items-center justify-center font-bold text-gray-600 transition">-</button>
+                            <span id="qty-display" class="font-bold text-lg w-6 text-center text-earth-brown">1</span>
+                            <button onclick="window.changeQty(1)" class="w-8 h-8 rounded-full bg-white border border-gray-300 hover:bg-gray-100 flex items-center justify-center font-bold text-gray-600 transition">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Promo Code (Hidden if no code) -->
+                    <div id="promo-section" class="hidden">
+                        <div class="flex gap-2">
+                            <input type="text" id="promo-input" placeholder="Promo Code" class="flex-1 border border-gray-300 rounded p-2 text-sm uppercase outline-none focus:border-earth-green">
+                            <button onclick="window.applyPromoCode()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded text-sm font-bold transition">Apply</button>
+                        </div>
+                        <p id="promo-message" class="text-xs mt-1 h-4"></p>
                     </div>
                 </div>
 
                 <!-- Paypal Container -->
                 <div id="paypal-button-container" class="mt-auto pt-4 border-t border-gray-100 min-h-[150px]"></div>
                 
-                <!-- SUCCESS / TICKET GENERATION SCREEN -->
+                <!-- SUCCESS SCREEN -->
                 <div id="payment-success" class="hidden flex-col items-center justify-center text-center p-4 bg-green-50 rounded-lg animate-fade-in w-full">
                     <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
                         <i class="ph ph-check-circle text-4xl text-green-600"></i>
@@ -269,9 +287,7 @@
                     <p class="text-gray-600 mb-6 text-sm">Confirmation sent to <span id="success-email" class="font-bold text-earth-brown"></span></p>
                     
                     <!-- SCROLLABLE TICKET LIST -->
-                    <div id="generated-tickets-container" class="w-full max-h-96 overflow-y-auto space-y-4 p-2">
-                        <!-- Tickets injected by JS loop -->
-                    </div>
+                    <div id="generated-tickets-container" class="w-full max-h-96 overflow-y-auto space-y-4 p-2"></div>
                     
                     <button onclick="closeCheckout()" class="mt-6 text-sm text-gray-500 hover:text-gray-800 underline">Close</button>
                 </div>
@@ -279,18 +295,15 @@
         </div>
     </div>
 
-    <!-- My Tickets Modal -->
+    <!-- Other Modals -->
     <div id="my-tickets-modal" class="hidden fixed inset-0 bg-black bg-opacity-90 z-[90] flex items-center justify-center backdrop-blur-sm">
         <div class="bg-white w-full max-w-2xl rounded-xl shadow-2xl p-6 relative max-h-[85vh] overflow-y-auto m-4">
             <button onclick="document.getElementById('my-tickets-modal').classList.add('hidden')" class="absolute top-4 right-4 text-gray-400 hover:text-red-500"><i class="ph ph-x text-xl"></i></button>
             <h2 class="text-2xl font-bold text-earth-brown mb-6 flex items-center"><i class="ph ph-ticket mr-2 text-earth-green"></i> My Ticket Wallet</h2>
-            <div id="my-tickets-list" class="space-y-4">
-                <div class="text-center text-gray-500 py-10">Loading tickets...</div>
-            </div>
+            <div id="my-tickets-list" class="space-y-4"><div class="text-center text-gray-500 py-10">Loading tickets...</div></div>
         </div>
     </div>
 
-    <!-- Buyer Login Modal -->
     <div id="buyer-modal" class="hidden fixed inset-0 bg-black bg-opacity-80 z-[60] flex items-center justify-center backdrop-blur-sm">
         <div class="bg-white p-8 rounded-lg max-w-sm w-full relative shadow-2xl">
             <button onclick="toggleBuyerModal()" class="absolute top-2 right-2 text-gray-400 hover:text-red-500"><i class="ph ph-x text-xl"></i></button>
@@ -311,7 +324,6 @@
         </div>
     </div>
 
-    <!-- Event Details Modal (Calendar) -->
     <div id="event-modal" class="hidden fixed inset-0 bg-black bg-opacity-80 z-[70] flex items-center justify-center backdrop-blur-sm">
         <div class="bg-white p-6 rounded-lg max-w-md w-full relative shadow-2xl m-4">
             <button onclick="document.getElementById('event-modal').classList.add('hidden')" class="absolute top-2 right-2 text-gray-400 hover:text-red-500"><i class="ph ph-x text-xl"></i></button>
@@ -347,12 +359,13 @@
         window.currentCheckoutEvent = null;
         window.selectedTier = null;
         window.selectedQty = 1;
+        window.calculatedTotal = 0;
+        window.appliedPromo = null; // Store {code, discount}
         let currentUser = null;
 
-        // Catch PayPal global errors
         window.addEventListener('error', function(e) {
             if (e.message && (e.message.includes('paypal') || e.message.includes('window host'))) {
-                console.warn("Caught PayPal Bootstrap Error via Global Listener");
+                console.warn("Caught PayPal Bootstrap Error");
                 const container = document.getElementById('paypal-button-container');
                 if (container && container.innerHTML === '') {
                     window.fallbackPaymentUI(container);
@@ -431,9 +444,8 @@
                 }
                 snapshot.forEach(docSnap => {
                     const t = docSnap.data();
-                    const qrData = encodeURIComponent(t.customer); // Only Customer ID
+                    const qrData = encodeURIComponent(t.customer);
                     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${qrData}`;
-                    
                     container.innerHTML += `
                         <div class="flex flex-col md:flex-row bg-gray-50 border border-gray-200 rounded-lg overflow-hidden shadow-sm">
                             <div class="bg-earth-brown text-white p-4 flex flex-col justify-center items-center md:w-32">
@@ -459,7 +471,7 @@
             window.currentCheckoutEvent = event;
             window.selectedTier = null;
             window.selectedQty = 1;
-            document.getElementById('qty-display').innerText = window.selectedQty;
+            window.appliedPromo = null; // Reset Promo
 
             // Populate Modal UI
             document.getElementById('checkout-img').src = event.image || 'https://via.placeholder.com/800';
@@ -467,7 +479,20 @@
             document.getElementById('checkout-date').innerText = new Date(event.date).toLocaleDateString('en-US', {weekday:'long', month:'long', day:'numeric'});
             document.getElementById('checkout-location').innerText = event.location;
             document.getElementById('checkout-time').innerText = event.time;
+            document.getElementById('qty-display').innerText = 1;
             
+            // Promo Section Visibility
+            const promoSec = document.getElementById('promo-section');
+            const promoInput = document.getElementById('promo-input');
+            const promoMsg = document.getElementById('promo-message');
+            promoInput.value = '';
+            promoMsg.innerText = '';
+            promoSec.classList.add('hidden');
+            if (event.promoCode && event.promoDiscount > 0) {
+                promoSec.classList.remove('hidden');
+            }
+
+            // Populate Tiers
             const tierContainer = document.getElementById('ticket-tiers-container');
             tierContainer.innerHTML = '';
             
@@ -490,6 +515,7 @@
                 tierContainer.innerHTML = '<p class="text-red-500 text-sm">No ticket tiers defined.</p>';
             }
 
+            // Reset UI
             document.getElementById('paypal-button-container').innerHTML = '';
             document.getElementById('paypal-button-container').classList.remove('hidden');
             document.getElementById('payment-success').classList.add('hidden');
@@ -511,19 +537,76 @@
                 window.selectedQty = newQty;
                 document.getElementById('qty-display').innerText = window.selectedQty;
                 updateTotal();
+                // Update fallback text if visible
                 const fallbackBtn = document.getElementById('fallback-pay-btn');
                 if (fallbackBtn) {
-                    const total = (parseFloat(window.selectedTier.price) * window.selectedQty).toFixed(2);
-                    fallbackBtn.innerText = `Simulate Payment ($${total})`;
+                    fallbackBtn.innerText = `Pay $${window.calculatedTotal.toFixed(2)} (Test Mode)`;
                 } else {
                     renderPayPalButton();
                 }
             }
         };
 
+        window.applyPromoCode = () => {
+            const input = document.getElementById('promo-input').value.trim().toUpperCase();
+            const msg = document.getElementById('promo-message');
+            const event = window.currentCheckoutEvent;
+
+            if (event.promoCode && input === event.promoCode) {
+                window.appliedPromo = { code: event.promoCode, discount: event.promoDiscount };
+                msg.innerText = `Success! ${event.promoDiscount}% Discount Applied.`;
+                msg.className = "text-xs mt-1 h-4 text-green-600 font-bold";
+            } else {
+                window.appliedPromo = null;
+                msg.innerText = "Invalid Promo Code.";
+                msg.className = "text-xs mt-1 h-4 text-red-500 font-bold";
+            }
+            updateTotal();
+            renderPayPalButton();
+        };
+
         function updateTotal() {
             if(!window.selectedTier) return;
-            const total = parseFloat(window.selectedTier.price) * window.selectedQty;
+            const event = window.currentCheckoutEvent;
+            
+            // 1. Subtotal
+            const subtotal = parseFloat(window.selectedTier.price) * window.selectedQty;
+            
+            // 2. Discount
+            let discountAmt = 0;
+            if (window.appliedPromo) {
+                discountAmt = subtotal * (window.appliedPromo.discount / 100);
+            }
+
+            // 3. Tax (Applied on Post-Discount Amount)
+            const taxBase = subtotal - discountAmt;
+            const taxRate = event.tax || 0; // Default 0 if undefined
+            const taxAmt = taxBase * (taxRate / 100);
+
+            // 4. Total
+            const total = taxBase + taxAmt;
+            window.calculatedTotal = total;
+
+            // UI Updates
+            document.getElementById('summ-subtotal').innerText = '$' + subtotal.toFixed(2);
+            
+            const discRow = document.getElementById('summ-discount-row');
+            if (discountAmt > 0) {
+                discRow.classList.remove('hidden');
+                document.getElementById('summ-discount').innerText = '-$' + discountAmt.toFixed(2);
+            } else {
+                discRow.classList.add('hidden');
+            }
+
+            const taxRow = document.getElementById('summ-tax-row');
+            if (taxAmt > 0) {
+                taxRow.classList.remove('hidden');
+                document.getElementById('summ-tax-rate').innerText = `(${taxRate}%)`;
+                document.getElementById('summ-tax').innerText = '$' + taxAmt.toFixed(2);
+            } else {
+                taxRow.classList.add('hidden');
+            }
+
             document.getElementById('checkout-total-display').innerText = '$' + total.toFixed(2);
         }
 
@@ -546,7 +629,7 @@
                 const ticketData = {
                     event: window.currentCheckoutEvent.title,
                     tier: window.selectedTier.name,
-                    qty: 1, // Single Ticket
+                    qty: 1, 
                     date: window.currentCheckoutEvent.date,
                     customer: custId
                 };
@@ -609,9 +692,7 @@
         };
 
         window.fallbackPaymentUI = function(container) {
-             const total = window.selectedTier 
-                ? (parseFloat(window.selectedTier.price) * window.selectedQty).toFixed(2)
-                : '0.00';
+             const total = window.calculatedTotal.toFixed(2);
              container.innerHTML = `
                 <div class="bg-yellow-50 border border-yellow-200 p-3 rounded mb-3 text-xs text-yellow-800">
                     <strong class="block mb-1">Preview Environment Restriction</strong>
@@ -619,7 +700,7 @@
                 </div>
                 <input type="email" id="fallback-email" placeholder="Enter email for receipt" class="w-full mb-2 p-2 border rounded text-sm">
                 <button id="fallback-pay-btn" onclick="window.mockPaymentSuccess()" class="w-full bg-earth-blue hover:bg-blue-600 text-white font-bold py-3 rounded shadow transition">
-                    Simulate Payment ($${total})
+                    Pay $${total} (Test Mode)
                 </button>
             `;
         };
@@ -648,12 +729,11 @@
                 paypal.Buttons({
                     style: { shape: 'rect', color: 'blue', layout: 'vertical', label: 'checkout' },
                     createOrder: function(data, actions) {
-                        const total = (parseFloat(window.selectedTier.price) * window.selectedQty).toFixed(2);
                         return actions.order.create({
                             application_context: { shipping_preference: 'NO_SHIPPING' },
                             purchase_units: [{
-                                description: `${window.currentCheckoutEvent.title} - ${window.selectedTier.name}`,
-                                amount: { value: total } 
+                                description: `${window.currentCheckoutEvent.title} - ${window.selectedTier.name} (x${window.selectedQty})`,
+                                amount: { value: window.calculatedTotal.toFixed(2) } 
                             }]
                         });
                     },
