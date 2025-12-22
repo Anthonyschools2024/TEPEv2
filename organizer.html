@@ -76,15 +76,12 @@
 
     <!-- ================= DASHBOARD VIEW ================= -->
     <div id="view-dashboard" class="hidden h-full flex flex-col relative">
-        
         <!-- Top Header -->
         <header class="bg-white shadow-sm h-16 flex items-center justify-between px-4 lg:px-6 z-20 relative">
             <div class="flex items-center space-x-3">
-                <!-- Mobile Hamburger -->
                 <button onclick="ui.toggleSidebar()" class="lg:hidden text-gray-600 focus:outline-none">
                     <i class="ph ph-list text-2xl"></i>
                 </button>
-                
                 <svg class="h-8 w-8 text-earth-green hidden sm:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3L2 21h20L12 3z" />
                 </svg>
@@ -130,7 +127,7 @@
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                         <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Performance Overview</h2>
                         <button onclick="ui.showSection('create')" class="bg-earth-green hover:bg-blue-700 text-white px-4 py-2 rounded shadow text-sm font-bold flex items-center w-full sm:w-auto justify-center">
-                            <i class="ph ph-plus mr-2"></i> New Event
+                            <i class="ph ph-plus mr-2"></i> New
                         </button>
                     </div>
 
@@ -294,7 +291,26 @@
                                 </div>
                                 <div class="md:col-span-2">
                                     <label class="block text-sm font-medium text-gray-700">Description</label>
-                                    <textarea id="evt-desc" rows="3" class="mt-1 w-full px-4 py-2 border rounded focus:ring-2 focus:ring-earth-green outline-none"></textarea>
+                                    <textarea id="evt-desc" rows="3" required class="mt-1 w-full px-4 py-2 border rounded focus:ring-2 focus:ring-earth-green outline-none"></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Financials & Promotions (Optional) -->
+                            <div class="border-t pt-6">
+                                <h3 class="text-lg font-bold text-gray-800 mb-4">Financials & Promotions <span class="text-xs font-normal text-gray-500">(Optional)</span></h3>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Tax Rate (%)</label>
+                                        <input type="number" id="evt-tax" class="mt-1 w-full px-4 py-2 border rounded focus:ring-2 focus:ring-earth-green outline-none" placeholder="0">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Promo Code</label>
+                                        <input type="text" id="evt-promo-code" class="mt-1 w-full px-4 py-2 border rounded focus:ring-2 focus:ring-earth-green outline-none" placeholder="e.g. EARLYBIRD">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">Discount (%)</label>
+                                        <input type="number" id="evt-promo-discount" class="mt-1 w-full px-4 py-2 border rounded focus:ring-2 focus:ring-earth-green outline-none" placeholder="0">
+                                    </div>
                                 </div>
                             </div>
 
@@ -309,7 +325,7 @@
                             <div class="border-t pt-6">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Cover Image</label>
                                 <div class="flex items-center justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md cursor-pointer hover:bg-gray-50 relative">
-                                    <input type="file" id="evt-image" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="dataManager.handleImagePreview(this)">
+                                    <input type="file" id="evt-image" accept="image/*" required class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="dataManager.handleImagePreview(this)">
                                     <div class="text-center" id="image-preview-area">
                                         <i class="ph ph-image text-4xl text-gray-400"></i>
                                         <p class="text-xs text-gray-600">Upload (Max 500KB)</p>
@@ -665,6 +681,11 @@
                 const tiers = tierManager.getTiers();
                 if(tiers.length === 0) { alert("Add a ticket tier"); return; }
 
+                // Get Financials
+                const tax = document.getElementById('evt-tax').value || 0;
+                const promoCode = document.getElementById('evt-promo-code').value || '';
+                const promoDiscount = document.getElementById('evt-promo-discount').value || 0;
+
                 try {
                     const eventData = {
                         title: document.getElementById('evt-title').value,
@@ -673,7 +694,11 @@
                         location: document.getElementById('evt-location').value,
                         description: document.getElementById('evt-desc').value,
                         image: document.getElementById('evt-image-base64').value || 'https://images.unsplash.com/photo-1459749411177-29432dc29afa?auto=format&fit=crop&w=800&q=60',
-                        tiers: tiers, 
+                        tiers: tiers,
+                        // NEW FINANCIAL DATA
+                        tax: parseFloat(tax),
+                        promoCode: promoCode.trim().toUpperCase(),
+                        promoDiscount: parseFloat(promoDiscount),
                         createdAt: new Date(),
                         creatorId: currentUser.uid 
                     };
