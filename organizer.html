@@ -39,7 +39,7 @@
     <div id="view-login" class="h-full flex items-center justify-center bg-earth-brown relative">
         <div class="absolute inset-0 opacity-30 bg-[url('https://images.unsplash.com/photo-1459749411177-29432dc29afa?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center"></div>
         
-        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md relative z-10">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md relative z-10 mx-4">
             <div class="text-center mb-8">
                 <div class="flex items-center justify-center space-x-2 mb-2">
                     <svg class="h-8 w-8 text-earth-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -75,52 +75,67 @@
     </div>
 
     <!-- ================= DASHBOARD VIEW ================= -->
-    <div id="view-dashboard" class="hidden h-full flex flex-col">
+    <div id="view-dashboard" class="hidden h-full flex flex-col relative">
+        
         <!-- Top Header -->
-        <header class="bg-white shadow-sm h-16 flex items-center justify-between px-6 z-20">
+        <header class="bg-white shadow-sm h-16 flex items-center justify-between px-4 lg:px-6 z-20 relative">
             <div class="flex items-center space-x-3">
-                <svg class="h-8 w-8 text-earth-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <!-- Mobile Hamburger -->
+                <button onclick="ui.toggleSidebar()" class="lg:hidden text-gray-600 focus:outline-none">
+                    <i class="ph ph-list text-2xl"></i>
+                </button>
+                
+                <svg class="h-8 w-8 text-earth-green hidden sm:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3L2 21h20L12 3z" />
                 </svg>
-                <span class="font-bold text-xl tracking-wider">Organizer Dashboard</span>
+                <span class="font-bold text-lg sm:text-xl tracking-wider truncate">Organizer Dashboard</span>
             </div>
-            <div class="flex items-center space-x-4">
-                <span id="user-display" class="text-sm text-gray-600 font-medium">organizer@tepe.com</span>
-                <button onclick="authManager.logout()" class="text-red-500 hover:text-red-700 font-medium text-sm">Logout</button>
+            <div class="flex items-center space-x-2 sm:space-x-4">
+                <span id="user-display" class="text-xs sm:text-sm text-gray-600 font-medium truncate max-w-[120px] sm:max-w-none">organizer@tepe.com</span>
+                <button onclick="authManager.logout()" class="text-red-500 hover:text-red-700 font-medium text-xs sm:text-sm">Logout</button>
             </div>
         </header>
 
-        <div class="flex flex-1 overflow-hidden">
-            <!-- Sidebar -->
-            <aside class="bg-earth-brown text-white w-64 flex-col py-6 px-4 space-y-2 hidden md:flex">
-                <button onclick="ui.showSection('overview')" id="nav-overview" class="flex items-center space-x-3 px-4 py-3 bg-earth-green rounded text-white transition text-sm font-bold">
+        <div class="flex flex-1 overflow-hidden relative">
+            
+            <!-- Mobile Sidebar Overlay -->
+            <div id="sidebar-overlay" onclick="ui.toggleSidebar()" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden lg:hidden transition-opacity"></div>
+
+            <!-- Sidebar Navigation -->
+            <aside id="sidebar" class="bg-earth-brown text-white w-64 flex-col py-6 px-4 space-y-2 absolute inset-y-0 left-0 transform -translate-x-full lg:relative lg:translate-x-0 transition duration-200 ease-in-out z-40 h-full">
+                <div class="flex justify-between items-center mb-6 lg:hidden">
+                    <span class="font-bold text-xl">Menu</span>
+                    <button onclick="ui.toggleSidebar()" class="text-white"><i class="ph ph-x text-2xl"></i></button>
+                </div>
+
+                <button onclick="ui.showSection('overview')" id="nav-overview" class="w-full flex items-center space-x-3 px-4 py-3 bg-earth-green rounded text-white transition text-sm font-bold">
                     <i class="ph ph-squares-four text-lg"></i><span>Overview</span>
                 </button>
-                <button onclick="ui.showSection('analytics')" id="nav-analytics" class="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800 rounded transition text-sm font-bold">
+                <button onclick="ui.showSection('analytics')" id="nav-analytics" class="w-full flex items-center space-x-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800 rounded transition text-sm font-bold">
                     <i class="ph ph-chart-line-up text-lg"></i><span>Analytics</span>
                 </button>
-                <button onclick="ui.showSection('scan')" id="nav-scan" class="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800 rounded transition text-sm font-bold">
+                <button onclick="ui.showSection('scan')" id="nav-scan" class="w-full flex items-center space-x-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800 rounded transition text-sm font-bold">
                     <i class="ph ph-qr-code text-lg"></i><span>Scan Tickets</span>
                 </button>
-                <button onclick="ui.showSection('create')" id="nav-create" class="flex items-center space-x-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800 rounded transition text-sm font-bold">
+                <button onclick="ui.showSection('create')" id="nav-create" class="w-full flex items-center space-x-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800 rounded transition text-sm font-bold">
                     <i class="ph ph-plus-circle text-lg"></i><span>Create Event</span>
                 </button>
             </aside>
 
             <!-- Content Area -->
-            <main class="flex-1 bg-earth-sand p-6 overflow-y-auto">
+            <main class="flex-1 bg-earth-sand p-4 sm:p-6 overflow-y-auto w-full">
                 
                 <!-- Section: Overview -->
                 <div id="section-overview" class="dash-section">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-2xl font-bold text-gray-800">Performance Overview</h2>
-                        <button onclick="ui.showSection('create')" class="bg-earth-green hover:bg-blue-700 text-white px-4 py-2 rounded shadow text-sm font-bold flex items-center md:hidden">
-                            <i class="ph ph-plus mr-2"></i> New
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                        <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Performance Overview</h2>
+                        <button onclick="ui.showSection('create')" class="bg-earth-green hover:bg-blue-700 text-white px-4 py-2 rounded shadow text-sm font-bold flex items-center w-full sm:w-auto justify-center">
+                            <i class="ph ph-plus mr-2"></i> New Event
                         </button>
                     </div>
 
-                    <!-- Stats -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <!-- Stats Grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
                         <div class="bg-white rounded-lg shadow p-5 border-l-4 border-earth-green">
                             <div class="flex justify-between items-center">
                                 <div>
@@ -152,78 +167,71 @@
 
                     <!-- Events Table -->
                     <div class="bg-white rounded shadow overflow-hidden">
-                        <div class="px-6 py-4 border-b">
+                        <div class="px-4 sm:px-6 py-4 border-b">
                             <h3 class="font-bold text-gray-700">Your Events</h3>
                         </div>
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Event Details</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date/Time</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tickets Configured</th>
-                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Manage</th>
-                                </tr>
-                            </thead>
-                            <tbody id="events-table-body" class="bg-white divide-y divide-gray-200">
-                                <!-- JS Injected -->
-                            </tbody>
-                        </table>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Details</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="events-table-body" class="bg-white divide-y divide-gray-200">
+                                    <!-- JS Injected -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Section: Analytics -->
                 <div id="section-analytics" class="dash-section hidden">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                        <h2 class="text-2xl font-bold text-gray-800">Event Analytics</h2>
-                        <!-- Event Selector -->
+                        <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Event Analytics</h2>
                         <div class="w-full md:w-64">
                             <select id="analytics-event-select" onchange="analyticsManager.filterByEvent()" class="w-full p-2 border border-gray-300 rounded shadow-sm focus:ring-2 focus:ring-earth-green outline-none bg-white">
                                 <option value="all">All Events</option>
-                                <!-- Injected via JS -->
                             </select>
                         </div>
                     </div>
 
-                    <!-- Analytics Cards -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+                        <div class="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-gray-100">
                             <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Gross Income</p>
-                            <p id="anl-income" class="text-3xl font-bold text-earth-green mt-2">$0.00</p>
+                            <p id="anl-income" class="text-2xl sm:text-3xl font-bold text-earth-green mt-2">$0.00</p>
                         </div>
-                        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                            <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Transactions</p>
-                            <p id="anl-transactions" class="text-3xl font-bold text-earth-blue mt-2">0</p>
+                        <div class="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-gray-100">
+                            <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Transactions</p>
+                            <p id="anl-transactions" class="text-2xl sm:text-3xl font-bold text-earth-blue mt-2">0</p>
                         </div>
-                         <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                         <div class="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-gray-100">
                             <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Tickets Sold</p>
-                            <p id="anl-tickets" class="text-3xl font-bold text-purple-600 mt-2">0</p>
+                            <p id="anl-tickets" class="text-2xl sm:text-3xl font-bold text-purple-600 mt-2">0</p>
                         </div>
-                         <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                            <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Avg. Order Value</p>
-                            <p id="anl-avg" class="text-3xl font-bold text-gray-700 mt-2">$0.00</p>
+                         <div class="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-gray-100">
+                            <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Avg. Order</p>
+                            <p id="anl-avg" class="text-2xl sm:text-3xl font-bold text-gray-700 mt-2">$0.00</p>
                         </div>
                     </div>
 
-                    <!-- Transactions Table -->
                     <div class="bg-white rounded-lg shadow overflow-hidden">
-                        <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
-                            <h3 class="font-bold text-gray-700">Recent Transactions</h3>
-                            <span class="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded" id="transaction-count-badge">0 found</span>
+                        <div class="px-4 sm:px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+                            <h3 class="font-bold text-gray-700 text-sm sm:text-base">Transactions</h3>
+                            <span class="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded" id="transaction-count-badge">0</span>
                         </div>
                         <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200">
+                            <table class="min-w-full divide-y divide-gray-200 text-sm">
                                 <thead class="bg-gray-100">
                                     <tr>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer ID</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Event</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tier / Qty</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                                        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase">ID</th>
+                                        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase">Event</th>
+                                        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase">Amount</th>
                                     </tr>
                                 </thead>
-                                <tbody id="analytics-table-body" class="bg-white divide-y divide-gray-200">
-                                    <!-- Injected via JS -->
-                                </tbody>
+                                <tbody id="analytics-table-body" class="bg-white divide-y divide-gray-200"></tbody>
                             </table>
                         </div>
                     </div>
@@ -231,24 +239,18 @@
 
                 <!-- Section: Scan Tickets -->
                 <div id="section-scan" class="dash-section hidden">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-6">Check-In Scanner</h2>
+                    <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-6">Check-In Scanner</h2>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <!-- Camera Area -->
-                        <div class="bg-black rounded-lg overflow-hidden relative" style="height: 400px;">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="bg-black rounded-lg overflow-hidden relative h-64 sm:h-96">
                             <div id="reader" class="w-full h-full"></div>
-                            <div class="absolute top-0 left-0 w-full h-full border-2 border-white opacity-50 pointer-events-none flex items-center justify-center">
-                                <div class="w-64 h-64 border-2 border-earth-green rounded-lg"></div>
-                            </div>
                         </div>
 
-                        <!-- Result Area -->
-                        <div class="bg-white rounded-lg shadow-lg p-8 flex flex-col justify-center">
+                        <div class="bg-white rounded-lg shadow-lg p-6 sm:p-8 flex flex-col justify-center">
                             <div id="scan-placeholder" class="text-center text-gray-400">
                                 <i class="ph ph-qr-code text-6xl mb-4"></i>
-                                <p>Ready to scan. Point camera at a ticket.</p>
-                                <p class="text-xs mt-2">Ensure you are using HTTPS or Localhost.</p>
-                                <button onclick="scannerManager.startScanner()" class="mt-4 bg-earth-green text-white px-6 py-2 rounded shadow hover:bg-blue-700 transition">Start Camera</button>
+                                <p>Ready to scan.</p>
+                                <button onclick="scannerManager.startScanner()" class="mt-4 bg-earth-green text-white px-6 py-2 rounded shadow hover:bg-blue-700 transition w-full sm:w-auto">Start Camera</button>
                             </div>
 
                             <div id="scan-result" class="hidden text-center">
@@ -260,9 +262,9 @@
                                 <div id="scan-details" class="mt-6 text-left bg-gray-50 p-4 rounded text-sm hidden">
                                     <p><strong>Event:</strong> <span id="res-event"></span></p>
                                     <p><strong>Tier:</strong> <span id="res-tier"></span></p>
-                                    <p><strong>Name:</strong> <span id="res-name"></span></p>
+                                    <p><strong>ID:</strong> <span id="res-name"></span></p>
                                 </div>
-                                <button onclick="scannerManager.reset()" class="mt-6 text-earth-green hover:underline">Scan Next</button>
+                                <button onclick="scannerManager.reset()" class="mt-6 text-earth-green hover:underline font-bold w-full p-2 border border-earth-green rounded">Scan Next</button>
                             </div>
                         </div>
                     </div>
@@ -270,10 +272,9 @@
 
                 <!-- Section: Create Event -->
                 <div id="section-create" class="dash-section hidden max-w-4xl mx-auto">
-                    <div class="bg-white rounded-lg shadow-lg p-8">
-                        <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-4">Publish New Event</h2>
+                    <div class="bg-white rounded-lg shadow-lg p-6 sm:p-8">
+                        <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-6 border-b pb-4">Publish New Event</h2>
                         <form id="create-event-form" class="space-y-6">
-                            <!-- Basic Details -->
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div class="md:col-span-2">
                                     <label class="block text-sm font-medium text-gray-700">Event Title</label>
@@ -297,35 +298,29 @@
                                 </div>
                             </div>
 
-                            <!-- Ticket Tiers Section -->
                             <div class="border-t pt-6">
                                 <div class="flex justify-between items-center mb-4">
-                                    <h3 class="text-lg font-bold text-gray-800">Ticket Tiers & Pricing</h3>
-                                    <button type="button" onclick="tierManager.addTier()" class="text-sm bg-blue-50 text-blue-600 px-3 py-1 rounded hover:bg-blue-100 font-semibold">+ Add Tier</button>
+                                    <h3 class="text-lg font-bold text-gray-800">Tickets</h3>
+                                    <button type="button" onclick="tierManager.addTier()" class="text-xs bg-blue-50 text-blue-600 px-3 py-1 rounded hover:bg-blue-100 font-semibold">+ Add Tier</button>
                                 </div>
-                                
-                                <div id="tiers-container" class="space-y-3">
-                                    <!-- Dynamic Tiers inserted here -->
-                                </div>
+                                <div id="tiers-container" class="space-y-3"></div>
                             </div>
 
-                            <!-- Image Upload -->
                             <div class="border-t pt-6">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Event Cover Image</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Cover Image</label>
                                 <div class="flex items-center justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md cursor-pointer hover:bg-gray-50 relative">
                                     <input type="file" id="evt-image" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="dataManager.handleImagePreview(this)">
                                     <div class="text-center" id="image-preview-area">
                                         <i class="ph ph-image text-4xl text-gray-400"></i>
-                                        <p class="text-sm text-gray-600">Click to upload (Max 500KB)</p>
+                                        <p class="text-xs text-gray-600">Upload (Max 500KB)</p>
                                     </div>
                                 </div>
                                 <input type="hidden" id="evt-image-base64">
                             </div>
 
-                            <!-- Actions -->
-                            <div class="flex justify-end space-x-3 pt-4 border-t">
-                                <button type="button" onclick="ui.showSection('overview')" class="px-4 py-2 border rounded text-gray-700 hover:bg-gray-50">Cancel</button>
-                                <button type="submit" class="px-6 py-2 bg-earth-green text-white font-bold rounded hover:bg-blue-700 shadow">Publish Event</button>
+                            <div class="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-3 pt-4 border-t">
+                                <button type="button" onclick="ui.showSection('overview')" class="px-4 py-2 border rounded text-gray-700 hover:bg-gray-50 w-full sm:w-auto">Cancel</button>
+                                <button type="submit" class="px-6 py-2 bg-earth-green text-white font-bold rounded hover:bg-blue-700 shadow w-full sm:w-auto">Publish</button>
                             </div>
                         </form>
                     </div>
@@ -361,134 +356,27 @@
         let myEvents = []; 
         let html5QrCode = null;
 
-        // --- SCANNER MANAGER ---
-        window.scannerManager = {
-            startScanner: () => {
-                document.getElementById('scan-placeholder').classList.add('hidden');
-                
-                html5QrCode = new Html5Qrcode("reader");
-                html5QrCode.start(
-                    { facingMode: "environment" }, 
-                    { fps: 10, qrbox: { width: 250, height: 250 } },
-                    (decodedText, decodedResult) => {
-                        // Success callback
-                        console.log(`Scan matched: ${decodedText}`, decodedResult);
-                        html5QrCode.stop().then(() => {
-                            window.scannerManager.verifyTicket(decodedText);
-                        });
-                    },
-                    (errorMessage) => {
-                        // parse error, ignore
-                    }
-                ).catch(err => {
-                    console.error("Camera start failed", err);
-                    alert("Error starting camera. Please ensure you granted permission and are using HTTPS/Localhost.");
-                    document.getElementById('scan-placeholder').classList.remove('hidden');
-                });
-            },
-
-            verifyTicket: async (customerId) => {
-                const resultDiv = document.getElementById('scan-result');
-                const icon = document.getElementById('scan-icon');
-                const iconContainer = document.getElementById('scan-icon-container');
-                const status = document.getElementById('scan-status');
-                const msg = document.getElementById('scan-message');
-                const details = document.getElementById('scan-details');
-
-                resultDiv.classList.remove('hidden');
-                
-                // Reset UI
-                icon.className = "ph ph-circle-notch animate-spin text-4xl text-gray-500";
-                iconContainer.className = "w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 bg-gray-100";
-                status.innerText = "Verifying...";
-                msg.innerText = "Checking database...";
-                details.classList.add('hidden');
-
-                try {
-                    // 1. Find Ticket in DB
-                    const q = query(collection(db, "tickets"), where("customer", "==", customerId));
-                    const snapshot = await getDocs(q);
-
-                    if (snapshot.empty) {
-                        throw new Error("Ticket not found in system.");
-                    }
-
-                    const ticketDoc = snapshot.docs[0];
-                    const ticket = ticketDoc.data();
-
-                    // 2. Check if this ticket belongs to an event created by CURRENT USER
-                    // Note: 'myEvents' is cached from the main listener
-                    const eventOwnership = myEvents.find(e => e.title === ticket.event);
-                    
-                    if (!eventOwnership) {
-                        throw new Error("This ticket is for an event you do not own.");
-                    }
-
-                    // 3. Check Status
-                    if (ticket.status === 'used') {
-                        // ALREADY SCANNED
-                        icon.className = "ph ph-warning text-4xl text-yellow-600";
-                        iconContainer.className = "w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 bg-yellow-100";
-                        status.innerText = "Already Scanned";
-                        status.className = "text-2xl font-bold text-yellow-600 mb-2";
-                        msg.innerText = `Checked in on ${new Date(ticket.scannedAt?.seconds * 1000).toLocaleString()}`;
-                    } else {
-                        // VALID - Check In Now
-                        await updateDoc(doc(db, "tickets", ticketDoc.id), {
-                            status: 'used',
-                            scannedAt: new Date()
-                        });
-                        
-                        icon.className = "ph ph-check text-4xl text-green-600";
-                        iconContainer.className = "w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 bg-green-100";
-                        status.innerText = "Access Granted";
-                        status.className = "text-2xl font-bold text-green-600 mb-2";
-                        msg.innerText = "Ticket is valid.";
-                    }
-
-                    // Show Details
-                    document.getElementById('res-event').innerText = ticket.event;
-                    document.getElementById('res-tier').innerText = ticket.tier;
-                    document.getElementById('res-name').innerText = ticket.customer;
-                    details.classList.remove('hidden');
-
-                } catch (error) {
-                    // INVALID / ERROR
-                    icon.className = "ph ph-x text-4xl text-red-600";
-                    iconContainer.className = "w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 bg-red-100";
-                    status.innerText = "Invalid Ticket";
-                    status.className = "text-2xl font-bold text-red-600 mb-2";
-                    msg.innerText = error.message;
-                }
-            },
-
-            reset: () => {
-                document.getElementById('scan-result').classList.add('hidden');
-                window.scannerManager.startScanner();
-            }
-        };
-
         // --- TIER MANAGER ---
         window.tierManager = {
             addTier: (name = '', price = '', capacity = '') => {
                 const container = document.getElementById('tiers-container');
                 const div = document.createElement('div');
-                div.className = "grid grid-cols-12 gap-3 items-end tier-row p-3 bg-gray-50 rounded border border-gray-200";
+                div.className = "grid grid-cols-12 gap-2 items-end tier-row p-2 bg-gray-50 rounded border border-gray-200";
                 div.innerHTML = `
-                    <div class="col-span-5">
-                        <label class="block text-xs font-bold text-gray-500">Tier Name</label>
-                        <input type="text" value="${name}" class="tier-name w-full p-2 border rounded text-sm" placeholder="e.g. VIP, General Admission">
+                    <div class="col-span-12 sm:col-span-5">
+                        <label class="block text-xs font-bold text-gray-500">Name</label>
+                        <input type="text" value="${name}" class="tier-name w-full p-2 border rounded text-xs" placeholder="e.g. VIP">
                     </div>
-                    <div class="col-span-3">
-                        <label class="block text-xs font-bold text-gray-500">Price ($)</label>
-                        <input type="number" value="${price}" class="tier-price w-full p-2 border rounded text-sm" placeholder="0.00">
+                    <div class="col-span-5 sm:col-span-3">
+                        <label class="block text-xs font-bold text-gray-500">Price</label>
+                        <input type="number" value="${price}" class="tier-price w-full p-2 border rounded text-xs" placeholder="0.00">
                     </div>
-                    <div class="col-span-3">
-                        <label class="block text-xs font-bold text-gray-500">Capacity</label>
-                        <input type="number" value="${capacity}" class="tier-capacity w-full p-2 border rounded text-sm" placeholder="100">
+                    <div class="col-span-5 sm:col-span-3">
+                        <label class="block text-xs font-bold text-gray-500">Cap</label>
+                        <input type="number" value="${capacity}" class="tier-capacity w-full p-2 border rounded text-xs" placeholder="100">
                     </div>
-                    <div class="col-span-1 text-center">
-                        <button type="button" onclick="this.parentElement.parentElement.remove()" class="text-red-500 hover:bg-red-50 p-2 rounded"><i class="ph ph-trash"></i></button>
+                    <div class="col-span-2 sm:col-span-1 text-center">
+                        <button type="button" onclick="this.parentElement.parentElement.remove()" class="text-red-500 hover:bg-red-50 p-1 rounded"><i class="ph ph-trash"></i></button>
                     </div>
                 `;
                 container.appendChild(div);
@@ -507,18 +395,91 @@
             }
         };
 
+        // --- UI ---
+        window.ui = {
+            toggleSidebar: () => {
+                const sb = document.getElementById('sidebar');
+                const overlay = document.getElementById('sidebar-overlay');
+                if(sb.classList.contains('-translate-x-full')) {
+                    sb.classList.remove('-translate-x-full');
+                    overlay.classList.remove('hidden');
+                } else {
+                    sb.classList.add('-translate-x-full');
+                    overlay.classList.add('hidden');
+                }
+            },
+            showSection: (section) => {
+                document.querySelectorAll('.dash-section').forEach(el => el.classList.add('hidden'));
+                document.getElementById(`section-${section}`).classList.remove('hidden');
+                
+                // Close sidebar on mobile
+                if(window.innerWidth < 1024) window.ui.toggleSidebar();
+
+                // Reset Navs
+                ['overview', 'analytics', 'create', 'scan'].forEach(id => {
+                    document.getElementById(`nav-${id}`).className = "w-full flex items-center space-x-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800 rounded transition text-sm font-bold";
+                });
+                
+                document.getElementById(`nav-${section}`).className = "w-full flex items-center space-x-3 px-4 py-3 bg-earth-green rounded text-white transition text-sm font-bold";
+
+                if(section === 'analytics') window.analyticsManager.loadData();
+                if(section === 'scan') {
+                     if (html5QrCode) {
+                        html5QrCode.stop().then(() => window.scannerManager.startScanner()).catch(() => window.scannerManager.startScanner());
+                    } else {
+                        window.scannerManager.startScanner();
+                    }
+                } else {
+                    if (html5QrCode && html5QrCode.isScanning) html5QrCode.stop().catch(console.error);
+                }
+            }
+        };
+
+        // --- AUTH ---
+        window.authManager = {
+            toggleMode: () => {
+                isLoginMode = !isLoginMode;
+                const title = document.getElementById('auth-title');
+                const btn = document.getElementById('auth-btn');
+                const toggleText = document.getElementById('auth-toggle-text');
+                const err = document.getElementById('auth-error');
+                err.classList.add('hidden'); 
+
+                if(isLoginMode) {
+                    title.innerText = "Organizer Login";
+                    btn.innerText = "Access Dashboard";
+                    toggleText.innerHTML = `New organizer? <button onclick="authManager.toggleMode()" class="text-earth-green font-bold hover:underline ml-1">Create Account</button>`;
+                } else {
+                    title.innerText = "Create Account";
+                    btn.innerText = "Create Account";
+                    toggleText.innerHTML = `Already have an account? <button onclick="authManager.toggleMode()" class="text-earth-green font-bold hover:underline ml-1">Login</button>`;
+                }
+            },
+            handleAuth: async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                const errEl = document.getElementById('auth-error');
+                
+                try {
+                    if(isLoginMode) await signInWithEmailAndPassword(auth, email, password);
+                    else await createUserWithEmailAndPassword(auth, email, password);
+                } catch (error) {
+                    errEl.innerText = error.message.replace('Firebase: ', '');
+                    errEl.classList.remove('hidden');
+                }
+            },
+            logout: () => { if (unsubscribe) unsubscribe(); signOut(auth); }
+        };
+
         // --- ANALYTICS MANAGER ---
         window.analyticsManager = {
-            allTransactions: [], // Store fetched transactions
+            allTransactions: [], 
 
             loadData: async () => {
                 if (!currentUser || myEvents.length === 0) return;
-
-                // 1. Get List of My Event Titles
                 const myEventTitles = myEvents.map(e => e.title);
                 
-                // 2. Fetch Tickets (filtering by event name in memory)
-                // In production, you'd filter by organizerId in database query
                 const q = query(collection(db, "tickets"), orderBy("timestamp", "desc"));
                 const snapshot = await getDocs(q);
                 
@@ -531,7 +492,6 @@
                     }
                 });
 
-                // 3. Update OVERVIEW Stats (Global)
                 let grandTotalRevenue = 0;
                 let grandTotalTickets = 0;
 
@@ -550,8 +510,6 @@
 
                 document.getElementById('stat-total-revenue').innerText = '$' + grandTotalRevenue.toFixed(2);
                 document.getElementById('stat-tickets-sold').innerText = grandTotalTickets;
-
-                // 4. Initial Render for Analytics Tab
                 window.analyticsManager.filterByEvent();
             },
 
@@ -564,43 +522,32 @@
                 let totalIncome = 0;
                 let totalTickets = 0;
 
-                // Filter Logic
-                if (selectedEventTitle === 'all') {
-                    filteredTx = transactions;
-                } else {
-                    filteredTx = transactions.filter(t => t.event === selectedEventTitle);
-                }
+                if (selectedEventTitle === 'all') filteredTx = transactions;
+                else filteredTx = transactions.filter(t => t.event === selectedEventTitle);
 
-                // Calculation Logic
                 filteredTx.forEach(t => {
-                    // Find event to get price
                     const evt = myEvents.find(e => e.title === t.event);
                     let price = 0;
                     if(evt && evt.tiers) {
                         const tierObj = evt.tiers.find(tier => tier.name === t.tier);
                         if(tierObj) price = parseFloat(tierObj.price);
                     }
-                    
                     const amount = price * (t.qty || 1);
                     totalIncome += amount;
                     totalTickets += (t.qty || 1);
-
-                    // Add price to transaction object for display
                     t._calculatedAmount = amount;
                 });
 
-                // Update Analytics Stats Cards
                 document.getElementById('anl-income').innerText = '$' + totalIncome.toFixed(2);
                 document.getElementById('anl-transactions').innerText = filteredTx.length;
                 document.getElementById('anl-tickets').innerText = totalTickets;
                 document.getElementById('anl-avg').innerText = filteredTx.length ? '$' + (totalIncome / filteredTx.length).toFixed(2) : '$0.00';
                 
-                // Render Table
                 tbody.innerHTML = '';
-                document.getElementById('transaction-count-badge').innerText = `${filteredTx.length} found`;
+                document.getElementById('transaction-count-badge').innerText = `${filteredTx.length}`;
 
                 if (filteredTx.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-gray-500">No transactions found for this selection.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-gray-500">No transactions.</td></tr>`;
                     return;
                 }
 
@@ -608,99 +555,96 @@
                     const date = t.timestamp ? new Date(t.timestamp.seconds * 1000).toLocaleDateString() : 'N/A';
                     tbody.innerHTML += `
                         <tr>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-600">${t.customer}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-800">${t.event}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${t.tier} <span class="bg-gray-100 px-1 rounded text-xs ml-1">x${t.qty}</span></td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-earth-green font-bold">$${t._calculatedAmount.toFixed(2)}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${date}</td>
+                            <td class="px-4 py-3 whitespace-nowrap font-mono text-gray-600">${t.customer}</td>
+                            <td class="px-4 py-3 whitespace-nowrap font-bold text-gray-800">${t.event}</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-earth-green font-bold">$${t._calculatedAmount.toFixed(2)}</td>
                         </tr>
                     `;
                 });
             }
         };
 
-        // --- UI ---
-        window.ui = {
-            showSection: (section) => {
-                document.querySelectorAll('.dash-section').forEach(el => el.classList.add('hidden'));
-                document.getElementById(`section-${section}`).classList.remove('hidden');
-                
-                // Reset Navs
-                ['overview', 'analytics', 'create', 'scan'].forEach(id => {
-                    document.getElementById(`nav-${id}`).className = "flex items-center space-x-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-gray-800 rounded transition text-sm font-bold";
-                });
-                
-                document.getElementById(`nav-${section}`).className = "flex items-center space-x-3 px-4 py-3 bg-earth-green rounded text-white transition text-sm font-bold";
-
-                if(section === 'analytics') window.analyticsManager.loadData();
-                if(section === 'scan') {
-                    // Stop any previous instance first
-                     if (html5QrCode) {
+        // --- SCANNER MANAGER ---
+        window.scannerManager = {
+            startScanner: () => {
+                document.getElementById('scan-placeholder').classList.add('hidden');
+                html5QrCode = new Html5Qrcode("reader");
+                html5QrCode.start(
+                    { facingMode: "environment" }, 
+                    { fps: 10, qrbox: { width: 250, height: 250 } },
+                    (decodedText, decodedResult) => {
                         html5QrCode.stop().then(() => {
-                            window.scannerManager.startScanner();
-                        }).catch(() => {
-                            window.scannerManager.startScanner();
+                            window.scannerManager.verifyTicket(decodedText);
                         });
-                    } else {
-                        window.scannerManager.startScanner();
-                    }
-                } else {
-                    // If leaving scan tab, stop camera
-                    if (html5QrCode && html5QrCode.isScanning) {
-                        html5QrCode.stop().catch(err => console.log("Stop failed", err));
-                    }
-                }
-            }
-        };
-
-        // --- AUTH ---
-        window.authManager = {
-            toggleMode: () => {
-                isLoginMode = !isLoginMode;
-                const title = document.getElementById('auth-title');
-                const btn = document.getElementById('auth-btn');
-                const toggleText = document.getElementById('auth-toggle-text');
-                const sub = document.getElementById('auth-subtitle');
-                const err = document.getElementById('auth-error');
-
-                err.classList.add('hidden'); 
-
-                if(isLoginMode) {
-                    title.innerText = "Organizer Login";
-                    sub.innerText = "Manage your events and sales";
-                    btn.innerText = "Access Dashboard";
-                    toggleText.innerHTML = `New organizer? <button onclick="authManager.toggleMode()" class="text-earth-green font-bold hover:underline ml-1">Create Account</button>`;
-                } else {
-                    title.innerText = "Create Organizer Account";
-                    sub.innerText = "Start selling tickets today";
-                    btn.innerText = "Create Account";
-                    toggleText.innerHTML = `Already have an account? <button onclick="authManager.toggleMode()" class="text-earth-green font-bold hover:underline ml-1">Login</button>`;
-                }
+                    },
+                    (errorMessage) => {}
+                ).catch(err => {
+                    console.error("Camera start failed", err);
+                    alert("Error starting camera. Use HTTPS.");
+                    document.getElementById('scan-placeholder').classList.remove('hidden');
+                });
             },
-            handleAuth: async (e) => {
-                e.preventDefault();
-                const email = document.getElementById('email').value;
-                const password = document.getElementById('password').value;
-                const errEl = document.getElementById('auth-error');
+
+            verifyTicket: async (customerId) => {
+                const resultDiv = document.getElementById('scan-result');
+                const icon = document.getElementById('scan-icon');
+                const iconContainer = document.getElementById('scan-icon-container');
+                const status = document.getElementById('scan-status');
+                const msg = document.getElementById('scan-message');
+                const details = document.getElementById('scan-details');
+
+                resultDiv.classList.remove('hidden');
                 
+                icon.className = "ph ph-circle-notch animate-spin text-4xl text-gray-500";
+                iconContainer.className = "w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 bg-gray-100";
+                status.innerText = "Verifying...";
+                msg.innerText = "Checking database...";
+                details.classList.add('hidden');
+
                 try {
-                    if(isLoginMode) {
-                        await signInWithEmailAndPassword(auth, email, password);
+                    const q = query(collection(db, "tickets"), where("customer", "==", customerId));
+                    const snapshot = await getDocs(q);
+
+                    if (snapshot.empty) throw new Error("Ticket not found.");
+                    const ticketDoc = snapshot.docs[0];
+                    const ticket = ticketDoc.data();
+                    const eventOwnership = myEvents.find(e => e.title === ticket.event);
+                    if (!eventOwnership) throw new Error("Wrong event.");
+
+                    if (ticket.status === 'used') {
+                        icon.className = "ph ph-warning text-4xl text-yellow-600";
+                        iconContainer.className = "w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 bg-yellow-100";
+                        status.innerText = "Already Scanned";
+                        status.className = "text-2xl font-bold text-yellow-600 mb-2";
+                        msg.innerText = `Scanned: ${new Date(ticket.scannedAt?.seconds * 1000).toLocaleString()}`;
                     } else {
-                        await createUserWithEmailAndPassword(auth, email, password);
+                        await updateDoc(doc(db, "tickets", ticketDoc.id), { status: 'used', scannedAt: new Date() });
+                        icon.className = "ph ph-check text-4xl text-green-600";
+                        iconContainer.className = "w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 bg-green-100";
+                        status.innerText = "Access Granted";
+                        status.className = "text-2xl font-bold text-green-600 mb-2";
+                        msg.innerText = "Valid Ticket.";
                     }
+                    document.getElementById('res-event').innerText = ticket.event;
+                    document.getElementById('res-tier').innerText = ticket.tier;
+                    document.getElementById('res-name').innerText = ticket.customer;
+                    details.classList.remove('hidden');
+
                 } catch (error) {
-                    errEl.innerText = error.message.replace('Firebase: ', '');
-                    errEl.classList.remove('hidden');
+                    icon.className = "ph ph-x text-4xl text-red-600";
+                    iconContainer.className = "w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 bg-red-100";
+                    status.innerText = "Invalid";
+                    status.className = "text-2xl font-bold text-red-600 mb-2";
+                    msg.innerText = error.message;
                 }
             },
-            logout: () => {
-                if (unsubscribe) unsubscribe(); 
-                signOut(auth);
+            reset: () => {
+                document.getElementById('scan-result').classList.add('hidden');
+                window.scannerManager.startScanner();
             }
         };
 
-        // --- DATA ---
+        // --- DATA MANAGER ---
         window.dataManager = {
             handleImagePreview: (input) => {
                 if (input.files && input.files[0]) {
@@ -719,10 +663,7 @@
                 if(!currentUser) return;
                 
                 const tiers = tierManager.getTiers();
-                if(tiers.length === 0) {
-                    alert("Please add at least one ticket tier (e.g. General Admission)");
-                    return;
-                }
+                if(tiers.length === 0) { alert("Add a ticket tier"); return; }
 
                 try {
                     const eventData = {
@@ -749,71 +690,51 @@
             },
             initListener: () => {
                 if (!currentUser) return;
-                
-                const q = query(
-                    collection(db, "events"), 
-                    where("creatorId", "==", currentUser.uid)
-                );
-                
+                const q = query(collection(db, "events"), where("creatorId", "==", currentUser.uid));
                 unsubscribe = onSnapshot(q, (snapshot) => {
                     const tbody = document.getElementById('events-table-body');
                     const select = document.getElementById('analytics-event-select');
-                    
                     tbody.innerHTML = '';
                     select.innerHTML = '<option value="all">All Events</option>';
-                    
                     document.getElementById('stat-active-count').innerText = snapshot.size;
-                    myEvents = []; // Clear cache
-
+                    
                     if(snapshot.empty) {
-                        tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-gray-500">No events found. Create your first one!</td></tr>`;
+                        tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-gray-500">No events found.</td></tr>`;
                         document.getElementById('stat-total-revenue').innerText = '$0.00';
                         document.getElementById('stat-tickets-sold').innerText = '0';
+                        myEvents = [];
                         return;
                     }
 
                     let events = [];
-                    snapshot.forEach(docSnap => {
-                        events.push({ id: docSnap.id, ...docSnap.data() });
-                    });
+                    snapshot.forEach(docSnap => events.push({ id: docSnap.id, ...docSnap.data() }));
                     events.sort((a, b) => new Date(a.date) - new Date(b.date));
                     myEvents = events; 
 
                     events.forEach(evt => {
                         const opt = document.createElement('option');
-                        opt.value = evt.title;
-                        opt.innerText = evt.title;
+                        opt.value = evt.title; opt.innerText = evt.title;
                         select.appendChild(opt);
-
                         const tierSummary = evt.tiers ? evt.tiers.map(t => `${t.name} ($${t.price})`).join(", ") : "No Tiers";
 
                         tbody.innerHTML += `
                             <tr>
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                <td class="px-4 py-3 whitespace-nowrap">
                                     <div class="flex items-center">
                                         <div class="h-10 w-10 flex-shrink-0"><img class="h-10 w-10 rounded-full object-cover" src="${evt.image}"></div>
-                                        <div class="ml-4"><div class="text-sm font-medium text-gray-900">${evt.title}</div></div>
+                                        <div class="ml-3"><div class="text-sm font-medium text-gray-900">${evt.title}</div></div>
                                     </div>
                                 </td>
-                                <td class="px-6 py-4 text-sm text-gray-500">${evt.date} at ${evt.time}</td>
-                                <td class="px-6 py-4 text-xs text-gray-500 font-mono">${tierSummary}</td>
-                                <td class="px-6 py-4 text-right"><button onclick="dataManager.deleteEvent('${evt.id}')" class="text-red-600 hover:text-red-900 text-sm font-bold">Delete</button></td>
+                                <td class="px-4 py-3 text-sm text-gray-500">${evt.date}</td>
+                                <td class="px-4 py-3 text-right"><button onclick="dataManager.deleteEvent('${evt.id}')" class="text-red-600 hover:text-red-900 text-sm font-bold">Delete</button></td>
                             </tr>
                         `;
                     });
-
                     window.analyticsManager.loadData();
-
-                }, (error) => {
-                    console.error("Organizer Dashboard Error:", error);
-                    if(error.code === 'failed-precondition') {
-                        alert("Database Index Required: Check console for link.");
-                    }
                 });
             }
         };
 
-        // --- BINDINGS ---
         document.getElementById('auth-form').addEventListener('submit', authManager.handleAuth);
         document.getElementById('create-event-form').addEventListener('submit', dataManager.createEvent);
 
@@ -824,9 +745,7 @@
                 document.getElementById('view-dashboard').classList.remove('hidden');
                 document.getElementById('user-display').innerText = user.email;
                 dataManager.initListener();
-                if(document.getElementById('tiers-container').children.length === 0) {
-                    tierManager.addTier('General Admission');
-                }
+                if(document.getElementById('tiers-container').children.length === 0) tierManager.addTier('General Admission');
             } else {
                 document.getElementById('view-login').classList.remove('hidden');
                 document.getElementById('view-dashboard').classList.add('hidden');
