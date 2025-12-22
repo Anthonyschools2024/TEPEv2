@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>T.E.P.E. - Super Admin</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        earth: {
+                            brown: '#000000', // Black
+                            green: '#2563EB', // Electric Blue
+                            blue: '#60A5FA',  // Sky Blue
+                            sand: '#F1F5F9',  // Slate 100
+                            dark: '#0F172A',  // Slate 900
+                            danger: '#DC2626' // Red
+                        }
+                    },
+                    fontFamily: { sans: ['Segoe UI', 'Roboto', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-earth-sand text-earth-dark font-sans antialiased h-screen overflow-hidden">
+
+    <!-- ================= ADMIN LOGIN ================= -->
+    <div id="view-login" class="h-full flex items-center justify-center bg-gray-900 relative">
+        <!-- Changed background to tepe01.jpg -->
+        <div class="absolute inset-0 opacity-20 bg-[url('tepe01.jpg')] bg-cover bg-center"></div>
+        
+        <div class="bg-white p-10 rounded-xl shadow-2xl w-full max-w-md relative z-10 border-t-4 border-earth-green">
+            <div class="text-center mb-8">
+                <i class="ph ph-shield-check text-5xl text-earth-green mb-3"></i>
+                <h2 class="text-2xl font-bold text-gray-800">Administrator Access</h2>
+                <p class="text-sm text-gray-500">Restricted to Authorized Personnel</p>
+            </div>
+
+            <form id="auth-form" class="space-y-5">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Admin Email</label>
+                    <input type="email" id="email" value="akimble109@gmail.com" readonly class="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded text-gray-600 focus:outline-none cursor-not-allowed">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Password</label>
+                    <input type="password" id="password" required class="w-full px-4 py-3 border border-gray-300 rounded focus:ring-2 focus:ring-earth-green outline-none transition">
+                </div>
+                <p id="auth-error" class="text-red-600 text-sm font-bold hidden text-center bg-red-50 p-2 rounded"></p>
+                
+                <div class="flex gap-3">
+                    <button type="button" onclick="authManager.handleLogin()" class="flex-1 bg-earth-brown hover:bg-gray-800 text-white font-bold py-3 rounded transition">Login</button>
+                    <!-- Allow initial setup -->
+                    <button type="button" onclick="authManager.handleSignup()" class="flex-1 border border-earth-brown text-earth-brown hover:bg-gray-50 font-bold py-3 rounded transition">Register</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= ADMIN DASHBOARD ================= -->
+    <div id="view-dashboard" class="hidden h-full flex flex-col">
+        <!-- Top Header -->
+        <header class="bg-gray-900 text-white h-16 flex items-center justify-between px-6 shadow-lg z-20">
+            <div class="flex items-center space-x-3">
+                <i class="ph ph-command text-earth-green text-2xl"></i>
+                <span class="font-bold text-lg tracking-wider">T.E.P.E. Command Center</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="text-right hidden sm:block">
+                    <p class="text-xs text-gray-400">Administrator</p>
+                    <p class="text-sm font-bold" id="admin-email-display">akimble109@gmail.com</p>
+                </div>
+                <button onclick="authManager.logout()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition font-bold">Logout</button>
+            </div>
+        </header>
+
+        <div class="flex flex-1 overflow-hidden">
+            <!-- Sidebar -->
+            <aside class="bg-white w-64 flex-col border-r border-gray-200 hidden md:flex">
+                <div class="p-4 space-y-2">
+                    <button onclick="ui.switchTab('analytics')" id="nav-analytics" class="w-full flex items-center space-x-3 px-4 py-3 bg-earth-green text-white rounded-lg transition shadow-sm font-semibold">
+                        <i class="ph ph-chart-bar text-xl"></i><span>Analytics</span>
+                    </button>
+                    <button onclick="ui.switchTab('events')" id="nav-events" class="w-full flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition font-semibold">
+                        <i class="ph ph-calendar text-xl"></i><span>All Events</span>
+                    </button>
+                    <button onclick="ui.switchTab('organizers')" id="nav-organizers" class="w-full flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition font-semibold">
+                        <i class="ph ph-users-three text-xl"></i><span>Organizers</span>
+                    </button>
+                    <button onclick="ui.switchTab('fans')" id="nav-fans" class="w-full flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition font-semibold">
+                        <i class="ph ph-ticket text-xl"></i><span>Event Users</span>
+                    </button>
+                </div>
+                <div class="mt-auto p-4 border-t border-gray-100">
+                    <p class="text-xs text-gray-400 text-center">System v2.0.1</p>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="flex-1 bg-earth-sand p-8 overflow-y-auto">
+                
+                <!-- TAB: ANALYTICS -->
+                <div id="tab-analytics" class="admin-tab space-y-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Platform Analytics</h2>
+                    
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Revenue -->
+                        <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-xs font-bold text-gray-400 uppercase">Total Gross Revenue</p>
+                                    <h3 id="global-revenue" class="text-4xl font-bold text-gray-800 mt-2">$0.00</h3>
+                                </div>
+                                <div class="p-3 bg-green-50 rounded-full text-green-600"><i class="ph ph-currency-dollar text-2xl"></i></div>
+                            </div>
+                        </div>
+                        <!-- Tickets -->
+                        <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-500">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-xs font-bold text-gray-400 uppercase">Total Tickets Sold</p>
+                                    <h3 id="global-tickets" class="text-4xl font-bold text-gray-800 mt-2">0</h3>
+                                </div>
+                                <div class="p-3 bg-blue-50 rounded-full text-blue-600"><i class="ph ph-ticket text-2xl"></i></div>
+                            </div>
+                        </div>
+                        <!-- Events -->
+                        <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-purple-500">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-xs font-bold text-gray-400 uppercase">Active Events</p>
+                                    <h3 id="global-events" class="text-4xl font-bold text-gray-800 mt-2">0</h3>
+                                </div>
+                                <div class="p-3 bg-purple-50 rounded-full text-purple-600"><i class="ph ph-calendar-check text-2xl"></i></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity Log (Simulated from Data) -->
+                    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+                            <h3 class="font-bold text-gray-700">Recent System Activity</h3>
+                        </div>
+                        <ul id="activity-log" class="divide-y divide-gray-100 text-sm text-gray-600">
+                            <li class="px-6 py-4 text-center text-gray-400">Loading activity...</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- TAB: EVENTS -->
+                <div id="tab-events" class="admin-tab hidden space-y-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Manage Events</h2>
+                    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Event Name</th>
+                                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Date</th>
+                                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Organizer ID</th>
+                                    <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-events" class="bg-white divide-y divide-gray-200">
+                                <!-- JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TAB: ORGANIZERS -->
+                <div id="tab-organizers" class="admin-tab hidden space-y-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Organizer Users</h2>
+                    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-100">
+                            <p class="text-sm text-gray-500">Users who have created at least one event.</p>
+                        </div>
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Organizer UID</th>
+                                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Events Created</th>
+                                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-organizers" class="bg-white divide-y divide-gray-200">
+                                <!-- JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TAB: FANS -->
+                <div id="tab-fans" class="admin-tab hidden space-y-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Event Users (Fans)</h2>
+                    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                         <div class="px-6 py-4 border-b border-gray-100">
+                            <p class="text-sm text-gray-500">Users who have purchased at least one ticket.</p>
+                        </div>
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">User UID</th>
+                                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Tickets Purchased</th>
+                                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Last Active</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-fans" class="bg-white divide-y divide-gray-200">
+                                <!-- JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- Firebase Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, getDocs, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyClJ0s2rXDFAMRJAQdjIlO7GsmH4mR1Vcs",
+            authDomain: "tepe-v2.firebaseapp.com",
+            projectId: "tepe-v2",
+            storageBucket: "tepe-v2.firebasestorage.app",
+            messagingSenderId: "830338278786",
+            appId: "1:830338278786:web:98a7eabb282b6518d09b9b",
+            measurementId: "G-P4L207DXG6"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const ADMIN_EMAIL = "akimble109@gmail.com";
+
+        // --- AUTH MANAGER ---
+        window.authManager = {
+            handleLogin: async () => {
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                const err = document.getElementById('auth-error');
+                
+                if(email !== ADMIN_EMAIL) {
+                    err.innerText = "Access Denied: This email is not authorized for Admin access.";
+                    err.classList.remove('hidden');
+                    return;
+                }
+
+                try {
+                    await signInWithEmailAndPassword(auth, email, password);
+                } catch (e) {
+                    err.innerText = e.message.replace('Firebase: ', '');
+                    err.classList.remove('hidden');
+                }
+            },
+            handleSignup: async () => {
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                const err = document.getElementById('auth-error');
+
+                if(email !== ADMIN_EMAIL) {
+                    err.innerText = "Access Denied: Only the Master Admin email can register here.";
+                    err.classList.remove('hidden');
+                    return;
+                }
+
+                try {
+                    await createUserWithEmailAndPassword(auth, email, password);
+                    alert("Admin Account Created Successfully.");
+                } catch (e) {
+                    err.innerText = e.message.replace('Firebase: ', '');
+                    err.classList.remove('hidden');
+                }
+            },
+            logout: () => signOut(auth)
+        };
+
+        // --- DATA MANAGER ---
+        window.adminData = {
+            events: [],
+            tickets: [],
+
+            loadAll: async () => {
+                // 1. Fetch ALL Events
+                const eventsSnap = await getDocs(query(collection(db, "events"), orderBy("createdAt", "desc")));
+                window.adminData.events = [];
+                eventsSnap.forEach(d => window.adminData.events.push({id: d.id, ...d.data()}));
+
+                // 2. Fetch ALL Tickets
+                const ticketsSnap = await getDocs(query(collection(db, "tickets"), orderBy("timestamp", "desc")));
+                window.adminData.tickets = [];
+                ticketsSnap.forEach(d => window.adminData.tickets.push({id: d.id, ...d.data()}));
+
+                window.adminData.renderAll();
+            },
+
+            renderAll: () => {
+                const events = window.adminData.events;
+                const tickets = window.adminData.tickets;
+
+                // --- 1. GLOBAL STATS ---
+                let totalRevenue = 0;
+                tickets.forEach(t => {
+                    // Match ticket to event tier price
+                    const evt = events.find(e => e.title === t.event);
+                    if(evt && evt.tiers) {
+                        const tier = evt.tiers.find(tr => tr.name === t.tier);
+                        if(tier) totalRevenue += parseFloat(tier.price) * (t.qty || 1);
+                    }
+                });
+
+                document.getElementById('global-revenue').innerText = '$' + totalRevenue.toLocaleString(undefined, {minimumFractionDigits: 2});
+                document.getElementById('global-tickets').innerText = tickets.length;
+                document.getElementById('global-events').innerText = events.length;
+
+                // Activity Log
+                const log = document.getElementById('activity-log');
+                log.innerHTML = '';
+                // Combine events and tickets for timeline
+                const combined = [
+                    ...events.map(e => ({type: 'event', ...e, date: e.createdAt})),
+                    ...tickets.map(t => ({type: 'ticket', ...t, date: t.timestamp}))
+                ].sort((a,b) => b.date - a.date).slice(0, 10);
+
+                combined.forEach(item => {
+                    const time = item.date ? new Date(item.date.seconds*1000).toLocaleDateString() : 'N/A';
+                    let html = '';
+                    if(item.type === 'event') {
+                        html = `<li class="px-6 py-3 flex justify-between bg-purple-50 border-l-4 border-purple-500 mb-1">
+                                    <span>New Event Created: <strong>${item.title}</strong></span>
+                                    <span class="text-xs">${time}</span>
+                                </li>`;
+                    } else {
+                        html = `<li class="px-6 py-3 flex justify-between">
+                                    <span>Ticket Sold: <strong>${item.event}</strong> (${item.tier})</span>
+                                    <span class="text-xs text-gray-400">${time}</span>
+                                </li>`;
+                    }
+                    log.innerHTML += html;
+                });
+
+                // --- 2. EVENTS TABLE ---
+                const evtTable = document.getElementById('table-events');
+                evtTable.innerHTML = '';
+                events.forEach(e => {
+                    evtTable.innerHTML += `
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-800">${e.title}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${e.date}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-xs font-mono text-gray-500">${e.creatorId || 'Unknown'}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right">
+                                <button onclick="window.adminData.deleteEvent('${e.id}')" class="text-red-600 hover:text-red-900 font-bold text-xs">DELETE</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                // --- 3. ORGANIZERS TABLE (Derived) ---
+                // Group events by creatorId
+                const organizerCounts = {};
+                events.forEach(e => {
+                    if(!e.creatorId) return;
+                    organizerCounts[e.creatorId] = (organizerCounts[e.creatorId] || 0) + 1;
+                });
+
+                const orgTable = document.getElementById('table-organizers');
+                orgTable.innerHTML = '';
+                Object.keys(organizerCounts).forEach(uid => {
+                    orgTable.innerHTML += `
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-xs font-mono text-earth-blue font-bold">${uid}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-bold">${organizerCounts[uid]}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-xs"><span class="px-2 py-1 bg-green-100 text-green-800 rounded-full">Active</span></td>
+                        </tr>
+                    `;
+                });
+
+                // --- 4. FANS TABLE (Derived) ---
+                // Group tickets by userId
+                const fanCounts = {};
+                tickets.forEach(t => {
+                    if(!t.userId) return;
+                    fanCounts[t.userId] = (fanCounts[t.userId] || 0) + 1;
+                });
+
+                const fanTable = document.getElementById('table-fans');
+                fanTable.innerHTML = '';
+                Object.keys(fanCounts).forEach(uid => {
+                    fanTable.innerHTML += `
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-xs font-mono text-purple-600 font-bold">${uid}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-bold">${fanCounts[uid]}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-xs text-gray-500">Active</td>
+                        </tr>
+                    `;
+                });
+            },
+
+            deleteEvent: async (id) => {
+                if(confirm("WARNING: As Administrator, you are about to delete this event from the platform. Proceed?")) {
+                    await deleteDoc(doc(db, "events", id));
+                    window.adminData.loadAll(); // Reload
+                }
+            }
+        };
+
+        // --- UI UTILS ---
+        window.ui = {
+            switchTab: (tabId) => {
+                document.querySelectorAll('.admin-tab').forEach(el => el.classList.add('hidden'));
+                document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+                
+                // Reset Nav Styles
+                ['analytics', 'events', 'organizers', 'fans'].forEach(id => {
+                    const btn = document.getElementById(`nav-${id}`);
+                    btn.className = "w-full flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition font-semibold";
+                    btn.classList.remove('bg-earth-green', 'text-white', 'shadow-sm');
+                });
+                
+                // Set Active Style
+                const active = document.getElementById(`nav-${tabId}`);
+                active.className = "w-full flex items-center space-x-3 px-4 py-3 bg-earth-green text-white rounded-lg transition shadow-sm font-semibold";
+            }
+        };
+
+        // --- AUTH LISTENER ---
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // Strictly enforce Admin Email
+                if(user.email !== ADMIN_EMAIL) {
+                    alert("Unauthorized Access. This portal is for the Master Admin only.");
+                    signOut(auth);
+                    return;
+                }
+
+                document.getElementById('view-login').classList.add('hidden');
+                document.getElementById('view-dashboard').classList.remove('hidden');
+                window.adminData.loadAll(); // Load data immediately on login
+            } else {
+                document.getElementById('view-login').classList.remove('hidden');
+                document.getElementById('view-dashboard').classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
