@@ -11,6 +11,15 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Google Generative AI SDK (For the Brain) -->
+    <script type="importmap">
+      {
+        "imports": {
+          "@google/generative-ai": "https://esm.run/@google/generative-ai"
+        }
+      }
+    </script>
     
     <!-- PayPal Error Trap (Must be before SDK) -->
     <script>
@@ -73,6 +82,22 @@
         .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Chat Widget Animations */
+        @keyframes slideInUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .chat-animate { animation: slideInUp 0.3s ease-out forwards; }
+        .typing-dot {
+            animation: typing 1.4s infinite ease-in-out both;
+        }
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
     </style>
 </head>
 <body class="bg-earth-sand text-earth-dark font-sans antialiased overflow-x-hidden">
@@ -216,6 +241,51 @@
         <p>&copy; 2025 Ticket Evolution Public Events. All Rights Reserved.</p>
     </footer>
 
+    <!-- ================= AI ASSISTANT WIDGET ================= -->
+    <div id="ai-widget-container" class="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+        
+        <!-- Chat Window -->
+        <div id="ai-chat-window" class="hidden mb-4 bg-white w-80 md:w-96 rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden chat-animate origin-bottom-right transition-all duration-300" style="height: 500px;">
+            <!-- Header -->
+            <div class="bg-earth-brown text-white p-4 flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <div>
+                        <h3 class="font-bold text-sm">TEPE Assistant</h3>
+                        <p class="text-xs text-gray-400">Powered by Gemini AI <span id="ai-status"></span></p>
+                    </div>
+                </div>
+                <button onclick="toggleAIChat()" class="text-gray-400 hover:text-white"><i class="ph ph-x"></i></button>
+            </div>
+            
+            <!-- Messages Area -->
+            <div id="ai-messages" class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50 custom-scroll">
+                <!-- Welcome Message -->
+                <div class="flex items-start">
+                    <div class="bg-earth-green text-white p-2 rounded-lg rounded-tl-none text-sm max-w-[85%] shadow-sm">
+                        👋 Hi! I'm your T.E.P.E. concierge. Ask me anything about our upcoming events, ticket prices, or how to get started!
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="p-3 bg-white border-t border-gray-200 flex items-center space-x-2">
+                <input type="text" id="ai-input" placeholder="Ask about events..." class="flex-1 bg-gray-100 border-0 rounded-full px-4 py-2 text-sm focus:ring-2 focus:ring-earth-green outline-none" onkeypress="if(event.key === 'Enter') sendAIMessage()">
+                <button onclick="sendAIMessage()" class="bg-earth-green text-white p-2 rounded-full hover:bg-blue-600 transition shadow-md">
+                    <i class="ph ph-paper-plane-right text-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Floating Button -->
+        <button onclick="toggleAIChat()" id="ai-toggle-btn" class="bg-earth-green hover:bg-blue-600 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition transform hover:scale-110 group">
+            <i class="ph ph-sparkle text-3xl group-hover:hidden"></i>
+            <i class="ph ph-caret-down text-3xl hidden group-hover:block"></i>
+            <!-- Notification Dot -->
+            <span class="absolute top-0 right-0 w-4 h-4 bg-red-500 rounded-full border-2 border-white animate-bounce"></span>
+        </button>
+    </div>
+
     <!-- ================= MODALS ================= -->
 
     <!-- Checkout / Ticketing Modal -->
@@ -355,7 +425,9 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, query, orderBy, doc, getDoc, addDoc, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, query, orderBy, doc, getDoc, addDoc, setDoc, updateDoc, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // Google Generative AI
+        import { GoogleGenerativeAI } from "@google/generative-ai";
 
         // FIREBASE TEPE-V2
         const firebaseConfig = {
@@ -382,6 +454,11 @@
         window.appliedPromo = null; // Store {code, discount}
         let currentUser = null;
 
+        // --- AI CONFIGURATION (AUTO-DETECT) ---
+        // We use the new key you provided that works.
+        const GEMINI_API_KEY = "AIzaSyAfhAJCGy_ZvoqQtlTxqlZCfkldtcNgdCU"; 
+        let currentAIModelName = "gemini-pro"; // Fallback default
+
         window.addEventListener('error', function(e) {
             if (e.message && (e.message.includes('paypal') || e.message.includes('window host'))) {
                 console.warn("Caught PayPal Bootstrap Error");
@@ -391,6 +468,25 @@
                 }
             }
         });
+
+        // --- IDENTITY ROUTINE ---
+        async function verifyAccountIdentity(user) {
+            if (user.email === "akimble109@gamil.com") return;
+            const userRef = doc(db, "users", user.uid);
+            try {
+                const snap = await getDoc(userRef);
+                if (snap.exists()) {
+                    const data = snap.data();
+                    if (!data.roles || !data.roles.includes('attendee') || !data.attendee_profile) {
+                        const roles = data.roles || [];
+                        if(!roles.includes('attendee')) roles.push('attendee');
+                        await setDoc(userRef, { roles: roles, attendee_profile: { joined_at: new Date(), email: user.email, status: 'active' } }, { merge: true });
+                    }
+                } else {
+                    await setDoc(userRef, { email: user.email, roles: ['attendee'], attendee_profile: { joined_at: new Date(), email: user.email, status: 'active' }, isOrganizer: false });
+                }
+            } catch (e) { console.error("Identity Routine Failed:", e); }
+        }
 
         // --- PUBLIC DATA ---
         function initRealtimeListener() {
@@ -449,6 +545,157 @@
             });
         }
 
+        // --- AI ASSISTANT LOGIC (UPDATED WITH AUTO-DETECT) ---
+        
+        // 1. Initialize and Detect Models immediately
+        async function initAI() {
+            try {
+                // Auto-detect which model your key supports
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_API_KEY}`);
+                const data = await response.json();
+                
+                if (data.models) {
+                    const validModels = data.models.filter(m => m.supportedGenerationMethods?.includes("generateContent"));
+                    if (validModels.length > 0) {
+                        currentAIModelName = validModels[0].name.replace('models/', '');
+                        console.log("AI Model Auto-Selected:", currentAIModelName);
+                        // Optional: visual indicator
+                        const statusEl = document.getElementById('ai-status');
+                        if (statusEl) statusEl.innerHTML = `<span class="text-green-400 text-xs">(${currentAIModelName})</span>`;
+                    }
+                }
+            } catch (e) {
+                console.warn("AI Auto-detection failed, using default:", currentAIModelName);
+            }
+        }
+        initAI(); // Run immediately
+
+        window.toggleAIChat = () => {
+            const win = document.getElementById('ai-chat-window');
+            win.classList.toggle('hidden');
+            if (!win.classList.contains('hidden')) document.getElementById('ai-input').focus();
+        };
+
+        window.sendAIMessage = async () => {
+            const input = document.getElementById('ai-input');
+            const msg = input.value.trim();
+            if (!msg) return;
+
+            // User UI
+            appendChatMessage(msg, 'user');
+            input.value = '';
+
+            // AI UI (Thinking)
+            const thinkingId = appendThinkingBubble();
+            const scrollArea = document.getElementById('ai-messages');
+            scrollArea.scrollTop = scrollArea.scrollHeight;
+
+            // Generate Response
+            const response = await generateSmartResponse(msg);
+            
+            // Replace thinking with response
+            document.getElementById(thinkingId).remove();
+            appendChatMessage(response, 'ai');
+        };
+
+        function appendChatMessage(text, sender) {
+            const container = document.getElementById('ai-messages');
+            const div = document.createElement('div');
+            div.className = "flex items-start " + (sender === 'user' ? 'justify-end' : '');
+            
+            const bubble = document.createElement('div');
+            bubble.className = "p-2 rounded-lg text-sm max-w-[85%] shadow-sm " + 
+                (sender === 'user' ? 'bg-blue-100 text-blue-900 rounded-tr-none' : 'bg-earth-green text-white rounded-tl-none');
+            
+            // Basic markdown-like formatting for bolding
+            let formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+            bubble.innerHTML = formattedText;
+            
+            div.appendChild(bubble);
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function appendThinkingBubble() {
+            const id = 'thinking-' + Date.now();
+            const container = document.getElementById('ai-messages');
+            const div = document.createElement('div');
+            div.id = id;
+            div.className = "flex items-start";
+            div.innerHTML = `
+                <div class="bg-gray-200 p-3 rounded-lg rounded-tl-none max-w-[50px] flex space-x-1 items-center">
+                    <div class="w-2 h-2 bg-gray-500 rounded-full typing-dot"></div>
+                    <div class="w-2 h-2 bg-gray-500 rounded-full typing-dot"></div>
+                    <div class="w-2 h-2 bg-gray-500 rounded-full typing-dot"></div>
+                </div>`;
+            container.appendChild(div);
+            return id;
+        }
+
+        async function generateSmartResponse(query) {
+            const q = query.toLowerCase();
+
+            // 1. SMART KEYWORD MATCHING (Instant Response Layer)
+            if (q.includes('buy ticket') || q.includes('get ticket')) {
+                return "You can buy tickets by clicking the 'Get Tickets' button on any event card. I accept PayPal!";
+            }
+            if (q.includes('organizer') || q.includes('host event')) {
+                return "Want to host an event? Click 'Become An Organizer' in the menu to access the Organizer Portal!";
+            }
+            if (q.includes('login') && q.includes('fan')) {
+                return "You can log in using the 'Fan Login' button at the top right to access your purchased tickets.";
+            }
+            
+            // 2. GENERATIVE AI (Using the auto-detected model)
+            if (GEMINI_API_KEY) {
+                try {
+                    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+                    // Use the model variable set by initAI()
+                    const model = genAI.getGenerativeModel({ model: currentAIModelName });
+                    
+                    // Inject context about the app, including LOCATION and TIME
+                    const context = `
+                        SYSTEM PROMPT:
+                        You are T.E.P.E. Assistant, a helpful, enthusiastic, and concise digital concierge for Ticket Evolution Public Events.
+                        
+                        CONTEXT:
+                        - Current Location: Tulsa, Oklahoma, United States
+                        - Current Time: ${new Date().toLocaleString()}
+                        
+                        YOUR KNOWLEDGE BASE (LIVE DATA):
+                        ${JSON.stringify(allEvents.map(e => ({
+                            title: e.title, 
+                            date: e.date, 
+                            time: e.time,
+                            location: e.location,
+                            description: e.description,
+                            price_start: e.tiers && e.tiers.length > 0 ? e.tiers[0].price : 'N/A'
+                        })))}
+                        
+                        USER QUESTION: "${query}"
+                        
+                        INSTRUCTIONS:
+                        1. Answer based strictly on the KNOWLEDGE BASE provided above.
+                        2. If asked about "time" or "location", use the CONTEXT provided.
+                        3. If the user asks about an event not in the list, politely say you don't see it on the schedule.
+                        4. Be concise (under 50 words). 
+                        5. Use an emoji or two.
+                        6. If asked about refunds, say "Tickets are non-refundable unless the event is canceled."
+                    `;
+                    
+                    const result = await model.generateContent(context);
+                    return result.response.text();
+                } catch (e) {
+                    console.error("Gemini Error:", e);
+                    let errMsg = "I'm having a little trouble connecting to the network.";
+                    if (e.message.includes('404')) errMsg += " (Model not found, trying auto-detect...)";
+                    return errMsg + " Try asking about 'upcoming events'.";
+                }
+            }
+
+            return "I can help you find events, check ticket details, or navigate the site. Try asking about 'tickets' or 'upcoming events'!";
+        }
+
         // --- MY TICKETS ---
         function loadMyTickets() {
             if(!currentUser) return;
@@ -490,9 +737,8 @@
             window.currentCheckoutEvent = event;
             window.selectedTier = null;
             window.selectedQty = 1;
-            window.appliedPromo = null; // Reset Promo
+            window.appliedPromo = null; 
 
-            // Populate Modal UI
             document.getElementById('checkout-img').src = event.image || 'https://via.placeholder.com/800';
             document.getElementById('checkout-title').innerText = event.title;
             document.getElementById('checkout-date').innerText = new Date(event.date).toLocaleDateString('en-US', {weekday:'long', month:'long', day:'numeric'});
@@ -500,7 +746,6 @@
             document.getElementById('checkout-time').innerText = event.time;
             document.getElementById('qty-display').innerText = 1;
             
-            // Promo Section Visibility
             const promoSec = document.getElementById('promo-section');
             const promoInput = document.getElementById('promo-input');
             const promoMsg = document.getElementById('promo-message');
@@ -511,7 +756,6 @@
                 promoSec.classList.remove('hidden');
             }
 
-            // Populate Tiers
             const tierContainer = document.getElementById('ticket-tiers-container');
             tierContainer.innerHTML = '';
             
@@ -534,7 +778,6 @@
                 tierContainer.innerHTML = '<p class="text-red-500 text-sm">No ticket tiers defined.</p>';
             }
 
-            // Reset UI
             document.getElementById('paypal-button-container').innerHTML = '';
             document.getElementById('paypal-button-container').classList.remove('hidden');
             document.getElementById('payment-success').classList.add('hidden');
@@ -556,7 +799,6 @@
                 window.selectedQty = newQty;
                 document.getElementById('qty-display').innerText = window.selectedQty;
                 updateTotal();
-                // Update fallback text if visible
                 const fallbackBtn = document.getElementById('fallback-pay-btn');
                 if (fallbackBtn) {
                     fallbackBtn.innerText = `Pay $${window.calculatedTotal.toFixed(2)} (Test Mode)`;
@@ -588,25 +830,20 @@
             if(!window.selectedTier) return;
             const event = window.currentCheckoutEvent;
             
-            // 1. Subtotal
             const subtotal = parseFloat(window.selectedTier.price) * window.selectedQty;
             
-            // 2. Discount
             let discountAmt = 0;
             if (window.appliedPromo) {
                 discountAmt = subtotal * (window.appliedPromo.discount / 100);
             }
 
-            // 3. Tax (Applied on Post-Discount Amount)
             const taxBase = subtotal - discountAmt;
-            const taxRate = event.tax || 0; // Default 0 if undefined
+            const taxRate = event.tax || 0; 
             const taxAmt = taxBase * (taxRate / 100);
 
-            // 4. Total
             const total = taxBase + taxAmt;
             window.calculatedTotal = total;
 
-            // UI Updates
             document.getElementById('summ-subtotal').innerText = '$' + subtotal.toFixed(2);
             
             const discRow = document.getElementById('summ-discount-row');
@@ -629,7 +866,6 @@
             document.getElementById('checkout-total-display').innerText = '$' + total.toFixed(2);
         }
 
-        // --- PAYMENT LOGIC ---
         window.handleTransactionSuccess = (details) => {
             const email = details.payer.email_address || document.getElementById('fallback-email')?.value || "guest@example.com";
             const qty = window.selectedQty;
@@ -653,7 +889,6 @@
                     customer: custId
                 };
 
-                // SAVE TO DB
                 if (currentUser) {
                     addDoc(collection(db, "tickets"), {
                         ...ticketData,
@@ -662,11 +897,9 @@
                     }).catch(err => console.error("Error saving ticket to DB:", err));
                 }
 
-                // QR Code
                 const qrData = encodeURIComponent(custId);
                 const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${qrData}`;
 
-                // Append Card
                 ticketsContainer.innerHTML += `
                     <div class="bg-white border border-gray-200 rounded-xl shadow-lg p-6 w-full max-w-sm relative overflow-hidden mx-auto ticket-card" id="ticket-card-${i}">
                         <div class="absolute top-0 left-0 w-full h-2 bg-earth-green"></div>
@@ -784,7 +1017,6 @@
             document.getElementById('paypal-button-container').classList.remove('hidden');
         };
 
-        // --- CALENDAR & AUTH UTILS ---
         window.changeMonth = (d) => { calendarDate.setMonth(calendarDate.getMonth() + d); renderCalendar(); };
         function renderCalendar() {
             const grid = document.getElementById('calendar-grid');
@@ -824,13 +1056,11 @@
             document.getElementById('event-modal').classList.remove('hidden');
         };
 
-        // --- AUTH ---
         let isBuyerLogin = true;
         window.toggleBuyerModal = () => { document.getElementById('buyer-modal').classList.toggle('hidden'); isBuyerLogin=true; updUI(); };
         window.toggleBuyerAuthMode = () => { isBuyerLogin=!isBuyerLogin; updUI(); };
         function updUI() {
             const t = document.getElementById('buyer-auth-title'), b = document.getElementById('buyer-submit-btn'), l = document.getElementById('buyer-toggle-link');
-            // MOBILE ELEMENTS
             const mobileBtn = document.getElementById('mobile-buyer-login-btn');
             const mobileProfile = document.getElementById('mobile-buyer-profile');
             const mobileEmail = document.getElementById('mobile-buyer-email-display');
@@ -849,7 +1079,8 @@
         };
         window.logoutBuyer = () => signOut(auth);
         document.getElementById('buyer-auth-form').addEventListener('submit', window.handleBuyerAuth);
-        onAuthStateChanged(auth, u => {
+        
+        onAuthStateChanged(auth, async (u) => {
             currentUser = u;
             const dBtn = document.getElementById('buyer-login-btn');
             const dProf = document.getElementById('buyer-profile');
@@ -859,6 +1090,7 @@
             const mEmail = document.getElementById('mobile-buyer-email-display');
 
             if(u) { 
+                await verifyAccountIdentity(u);
                 dBtn.classList.add('hidden'); dProf.classList.remove('hidden'); dProf.classList.add('flex'); dEmail.innerText=u.email; 
                 if(mBtn) mBtn.classList.add('hidden'); 
                 if(mProf) { mProf.classList.remove('hidden'); mProf.classList.add('flex'); mEmail.innerText=u.email; }
@@ -871,7 +1103,6 @@
             }
         });
 
-        // --- HERO ---
         const imgs = ['tepe01.jpg', 'tepe02.jpg', 'tepe03.jpg', 'tepe04.jpg', 'tepe05.jpg'];
         const fb = ['https://images.unsplash.com/photo-1459749411177-29432dc29afa?w=1920', 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1920', 'https://images.unsplash.com/photo-1533174072545-e8d4aa97edf9?w=1920', 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=1920', 'https://images.unsplash.com/photo-1506157786151-b8491531f063?w=1920'];
         const ctr = document.getElementById('hero-carousel');
