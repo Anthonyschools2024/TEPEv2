@@ -44,6 +44,21 @@
         .typing-dot:nth-child(2) { animation-delay: -0.16s; }
         @keyframes typing { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
         .ai-response strong { font-weight: bold; color: #4B5563; }
+        
+        /* Floating Button Animation */
+        @keyframes float {
+            0% { transform: translateY(0px); box-shadow: 0 5px 15px 0px rgba(0,0,0,0.2); }
+            50% { transform: translateY(-5px); box-shadow: 0 15px 15px 0px rgba(0,0,0,0.1); }
+            100% { transform: translateY(0px); box-shadow: 0 5px 15px 0px rgba(0,0,0,0.2); }
+        }
+        .animate-float { animation: float 4s ease-in-out infinite; }
+
+        /* Chat Pop-up Animation */
+        @keyframes slideUpFade {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .chat-enter { animation: slideUpFade 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
     </style>
 </head>
 <body class="bg-earth-sand text-earth-dark font-sans antialiased h-screen overflow-hidden">
@@ -74,140 +89,193 @@
 
     <!-- ================= DASHBOARD VIEW ================= -->
     <div id="view-dashboard" class="hidden h-full flex flex-col relative">
-        <header class="bg-white shadow-sm h-16 flex items-center justify-between px-4 lg:px-6 z-20 relative">
+        
+        <!-- HEADER -->
+        <header class="bg-white shadow-sm h-16 flex items-center justify-between px-4 lg:px-6 z-20 relative flex-shrink-0">
             <div class="flex items-center space-x-3">
-                <button onclick="ui.toggleSidebar()" class="lg:hidden text-gray-600"><i class="ph ph-list text-2xl"></i></button>
+                <!-- Hamburger Menu (Mobile Only) -->
+                <button onclick="ui.toggleSidebar()" class="lg:hidden text-gray-600 hover:text-earth-green transition p-1">
+                    <i class="ph ph-list text-3xl"></i>
+                </button>
                 <span class="font-bold text-lg sm:text-xl tracking-wider truncate text-earth-green">Organizer Dashboard</span>
             </div>
-            <div class="flex items-center space-x-2 sm:space-x-4">
-                <!-- AI CO-PILOT BUTTON -->
-                <button onclick="window.toggleAICopilot()" class="hidden md:flex items-center space-x-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-3 py-1.5 rounded-full shadow hover:shadow-lg transition transform hover:-translate-y-0.5 text-xs font-bold mr-2">
-                    <i class="ph ph-sparkle-fill"></i>
-                    <span>AI Co-Pilot</span>
+            
+            <!-- Desktop Right Menu (Hidden on Mobile) -->
+            <div class="hidden lg:flex items-center space-x-4">
+                <span id="plan-badge" class="px-3 py-1 rounded-full text-xs font-bold uppercase bg-gray-100 text-gray-600 border border-gray-200">Free Tier</span>
+                <div class="flex items-center space-x-2 border-l pl-4 border-gray-200">
+                    <div class="w-8 h-8 rounded-full bg-earth-green text-white flex items-center justify-center font-bold text-xs" id="header-avatar">O</div>
+                    <span id="user-display" class="text-sm text-gray-700 font-medium truncate max-w-[150px]">...</span>
+                </div>
+                <button onclick="authManager.logout()" class="text-red-500 hover:text-white hover:bg-red-500 border border-red-500 px-3 py-1 rounded-md text-sm font-bold transition">
+                    Logout
                 </button>
-
-                <span id="plan-badge" class="px-2 py-1 rounded text-xs font-bold uppercase bg-gray-200 text-gray-600">Free Tier</span>
-                <span id="user-display" class="text-xs sm:text-sm text-gray-600 font-medium truncate max-w-[120px] sm:max-w-none">...</span>
-                <button onclick="authManager.logout()" class="text-red-500 hover:text-red-700 font-medium text-xs sm:text-sm">Logout</button>
             </div>
         </header>
 
         <div class="flex flex-1 overflow-hidden relative">
-            <div id="sidebar-overlay" onclick="ui.toggleSidebar()" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden lg:hidden transition-opacity"></div>
-            <aside id="sidebar" class="bg-earth-brown text-white w-64 flex-col py-6 px-4 space-y-2 absolute inset-y-0 left-0 transform -translate-x-full lg:relative lg:translate-x-0 transition duration-200 ease-in-out z-40 h-full">
-                <button onclick="ui.showSection('overview')" id="nav-overview" class="w-full flex items-center space-x-3 px-4 py-3 bg-earth-green rounded text-white text-sm font-bold"><i class="ph ph-squares-four text-lg"></i><span>Overview</span></button>
-                <button onclick="ui.showSection('analytics')" id="nav-analytics" class="w-full flex items-center space-x-3 px-4 py-3 text-gray-400 hover:text-white rounded text-sm font-bold"><i class="ph ph-chart-line-up text-lg"></i><span>Analytics</span></button>
-                <button onclick="ui.showSection('scan')" id="nav-scan" class="w-full flex items-center space-x-3 px-4 py-3 text-gray-400 hover:text-white rounded text-sm font-bold"><i class="ph ph-qr-code text-lg"></i><span>Scan Tickets</span></button>
-                <button onclick="ui.showSection('plans')" id="nav-plans" class="w-full flex items-center space-x-3 px-4 py-3 text-gray-400 hover:text-white rounded text-sm font-bold"><i class="ph ph-crown text-lg"></i><span>Plan & Billing</span></button>
-                <div class="pt-4 mt-4 border-t border-gray-700">
-                    <button onclick="ui.showSection('create')" id="nav-create" class="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-white text-earth-brown hover:bg-gray-200 rounded transition text-sm font-bold"><i class="ph ph-plus-circle text-lg"></i><span>Create Event</span></button>
+            <!-- Sidebar Overlay (Mobile) -->
+            <div id="sidebar-overlay" onclick="ui.toggleSidebar()" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden lg:hidden transition-opacity backdrop-blur-sm"></div>
+            
+            <!-- SIDEBAR NAVIGATION -->
+            <aside id="sidebar" class="bg-earth-brown text-white w-72 flex flex-col py-6 px-4 space-y-2 absolute inset-y-0 left-0 transform -translate-x-full lg:relative lg:translate-x-0 transition duration-300 ease-in-out z-40 h-full shadow-2xl lg:shadow-none">
+                
+                <!-- Nav Links -->
+                <div class="flex-1 space-y-2">
+                    <button onclick="ui.showSection('overview')" id="nav-overview" class="w-full flex items-center space-x-3 px-4 py-3 bg-earth-green rounded-lg text-white text-sm font-bold shadow-md transition-all hover:translate-x-1">
+                        <i class="ph ph-squares-four text-xl"></i><span>Overview</span>
+                    </button>
+                    <button onclick="ui.showSection('analytics')" id="nav-analytics" class="w-full flex items-center space-x-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg text-sm font-bold transition-all hover:translate-x-1">
+                        <i class="ph ph-chart-line-up text-xl"></i><span>Analytics</span>
+                    </button>
+                    <button onclick="ui.showSection('scan')" id="nav-scan" class="w-full flex items-center space-x-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg text-sm font-bold transition-all hover:translate-x-1">
+                        <i class="ph ph-qr-code text-xl"></i><span>Scan Tickets</span>
+                    </button>
+                    <button onclick="ui.showSection('plans')" id="nav-plans" class="w-full flex items-center space-x-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg text-sm font-bold transition-all hover:translate-x-1">
+                        <i class="ph ph-crown text-xl text-yellow-500"></i><span>Plan & Billing</span>
+                    </button>
+                    
+                    <div class="pt-4 mt-4 border-t border-gray-800">
+                        <button onclick="ui.showSection('create')" id="nav-create" class="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-white text-earth-brown hover:bg-gray-200 rounded-lg transition text-sm font-bold shadow-lg transform hover:scale-105">
+                            <i class="ph ph-plus-circle text-xl"></i><span>Create Event</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Mobile Only User Info & Logout (Bottom of Sidebar) -->
+                <div class="lg:hidden pt-6 mt-auto border-t border-gray-800">
+                    <div class="flex items-center space-x-3 mb-4 px-2">
+                        <div class="w-10 h-10 rounded-full bg-earth-green text-white flex items-center justify-center font-bold" id="mobile-avatar">O</div>
+                        <div class="flex-1 overflow-hidden">
+                            <p id="mobile-user-display" class="text-sm font-bold text-white truncate">...</p>
+                            <p id="mobile-plan-display" class="text-xs text-gray-400 uppercase">Free Tier</p>
+                        </div>
+                    </div>
+                    <button onclick="authManager.logout()" class="w-full flex items-center justify-center space-x-2 px-4 py-3 border border-red-500/50 text-red-400 hover:bg-red-500/10 rounded-lg text-sm font-bold transition">
+                        <i class="ph ph-sign-out text-lg"></i>
+                        <span>Sign Out</span>
+                    </button>
                 </div>
             </aside>
 
-            <main class="flex-1 bg-earth-sand p-4 sm:p-6 overflow-y-auto w-full relative">
+            <!-- MAIN CONTENT AREA -->
+            <main class="flex-1 bg-earth-sand p-4 sm:p-6 lg:p-8 overflow-y-auto w-full relative">
                 
                 <!-- OVERVIEW -->
-                <div id="section-overview" class="dash-section">
+                <div id="section-overview" class="dash-section animate-fade-in">
                     <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-6">Performance Overview</h2>
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
-                        <div class="bg-white rounded-lg shadow p-5 border-l-4 border-earth-green">
-                            <p class="text-sm text-gray-500 font-semibold">Active Events</p>
-                            <p id="stat-active-count" class="text-2xl font-bold text-gray-800">-</p>
+                        <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-earth-green">
+                            <p class="text-sm text-gray-500 font-bold uppercase tracking-wide">Active Events</p>
+                            <p id="stat-active-count" class="text-3xl font-bold text-gray-800 mt-2">-</p>
                         </div>
-                        <div class="bg-white rounded-lg shadow p-5 border-l-4 border-earth-blue">
-                            <p class="text-sm text-gray-500 font-semibold">Total Revenue</p>
-                            <p id="stat-total-revenue" class="text-2xl font-bold text-gray-800">$0.00</p>
+                        <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-earth-blue">
+                            <p class="text-sm text-gray-500 font-bold uppercase tracking-wide">Total Revenue</p>
+                            <p id="stat-total-revenue" class="text-3xl font-bold text-gray-800 mt-2">$0.00</p>
                         </div>
-                         <div class="bg-white rounded-lg shadow p-5 border-l-4 border-purple-500">
-                            <p class="text-sm text-gray-500 font-semibold">Tickets Sold</p>
-                            <p id="stat-tickets-sold" class="text-2xl font-bold text-gray-800">0</p>
+                         <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-purple-500">
+                            <p class="text-sm text-gray-500 font-bold uppercase tracking-wide">Tickets Sold</p>
+                            <p id="stat-tickets-sold" class="text-3xl font-bold text-gray-800 mt-2">0</p>
                         </div>
                     </div>
-                    <div class="bg-white rounded shadow overflow-hidden">
-                        <div class="px-4 py-4 border-b"><h3 class="font-bold text-gray-700">Your Events</h3></div>
-                        <div class="overflow-x-auto"><table class="min-w-full divide-y divide-gray-200"><tbody id="events-table-body" class="bg-white divide-y divide-gray-200"></tbody></table></div>
+                    <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+                        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50"><h3 class="font-bold text-gray-700">Your Events</h3></div>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="events-table-body" class="bg-white divide-y divide-gray-200"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
                 <!-- ANALYTICS -->
-                <div id="section-analytics" class="dash-section hidden">
-                    <div class="flex justify-between items-center mb-6">
+                <div id="section-analytics" class="dash-section hidden animate-fade-in">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                         <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Analytics</h2>
-                        <select id="analytics-event-select" onchange="analyticsManager.filterByEvent()" class="p-2 border rounded"><option value="all">All Events</option></select>
+                        <select id="analytics-event-select" onchange="analyticsManager.filterByEvent()" class="p-2 border rounded-lg bg-white shadow-sm w-full sm:w-auto"><option value="all">All Events</option></select>
                     </div>
-                    <div class="bg-white rounded-lg shadow overflow-hidden">
-                        <table class="min-w-full divide-y divide-gray-200 text-sm">
-                            <thead class="bg-gray-100"><tr><th class="px-4 py-3 text-left">ID</th><th class="px-4 py-3 text-left">Event</th><th class="px-4 py-3 text-left">Amount</th></tr></thead>
-                            <tbody id="analytics-table-body" class="bg-white divide-y divide-gray-200"></tbody>
-                        </table>
+                    <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200 text-sm">
+                                <thead class="bg-gray-50"><tr><th class="px-6 py-3 text-left font-bold text-gray-500">ID</th><th class="px-6 py-3 text-left font-bold text-gray-500">Event</th><th class="px-6 py-3 text-left font-bold text-gray-500">Amount</th></tr></thead>
+                                <tbody id="analytics-table-body" class="bg-white divide-y divide-gray-200"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
                 <!-- SCANNER -->
-                <div id="section-scan" class="dash-section hidden">
+                <div id="section-scan" class="dash-section hidden animate-fade-in">
                     <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-6">Scanner</h2>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        <div class="bg-black rounded-lg overflow-hidden relative h-64 sm:h-96"><div id="reader" class="w-full h-full"></div></div>
-                        <div class="bg-white rounded-lg shadow-lg p-6 flex flex-col justify-center text-center">
+                        <div class="bg-black rounded-2xl overflow-hidden relative h-72 sm:h-96 shadow-lg border-4 border-gray-800"><div id="reader" class="w-full h-full"></div></div>
+                        <div class="bg-white rounded-2xl shadow-lg p-8 flex flex-col justify-center text-center border border-gray-100">
                             <div id="scan-placeholder">
-                                <i class="ph ph-qr-code text-6xl mb-4 text-gray-400"></i>
-                                <p class="text-gray-500 mb-4">Point your camera at a ticket QR code</p>
-                                <button onclick="scannerManager.startScanner()" class="bg-earth-green text-white px-6 py-3 rounded-lg font-bold shadow hover:bg-blue-600 transition">Start Camera</button>
+                                <i class="ph ph-qr-code text-6xl mb-4 text-gray-300"></i>
+                                <p class="text-gray-500 mb-6">Point your camera at a ticket QR code to verify entry.</p>
+                                <button onclick="scannerManager.startScanner()" class="bg-earth-green text-white px-8 py-3 rounded-full font-bold shadow-lg hover:bg-blue-600 transition transform hover:scale-105">Start Camera</button>
                             </div>
                             <div id="scan-result" class="hidden">
                                 <h3 id="scan-status" class="text-2xl font-bold mb-2">Verifying...</h3>
-                                <div id="scan-details" class="bg-gray-50 p-4 rounded mb-4"></div>
-                                <button onclick="scannerManager.reset()" class="bg-gray-800 text-white px-6 py-2 rounded shadow hover:bg-black">Scan Next</button>
+                                <div id="scan-details" class="bg-gray-50 p-4 rounded-xl border border-gray-100 mb-6"></div>
+                                <button onclick="scannerManager.reset()" class="bg-gray-800 text-white px-8 py-3 rounded-full shadow hover:bg-black font-bold transition">Scan Next</button>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- PLANS & BILLING -->
-                <div id="section-plans" class="dash-section hidden">
+                <div id="section-plans" class="dash-section hidden animate-fade-in">
                     <div class="text-center mb-10">
                         <h2 class="text-3xl font-bold text-gray-800">Upgrade Your Capacity</h2>
-                        <p class="text-gray-500">Choose a plan that fits your event needs. Cancel anytime.</p>
-                        <p class="mt-2 font-bold text-earth-blue">Current Plan: <span id="current-plan-name">Free</span></p>
+                        <p class="text-gray-500">Choose a plan that fits your event needs.</p>
+                        <p class="mt-2 font-bold text-earth-blue bg-blue-50 inline-block px-3 py-1 rounded-full text-sm">Current: <span id="current-plan-name">Free</span></p>
                     </div>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto pb-10">
                         <!-- Free -->
-                        <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-6 flex flex-col relative overflow-hidden">
+                        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 flex flex-col relative overflow-hidden opacity-75 grayscale hover:grayscale-0 hover:opacity-100 transition">
                             <h3 class="text-lg font-bold text-gray-500 uppercase tracking-widest">Trial</h3>
                             <div class="my-4"><span class="text-4xl font-bold text-gray-800">Free</span></div>
                             <ul class="space-y-3 mb-8 flex-1 text-sm text-gray-600">
                                 <li class="flex items-center"><i class="ph ph-check text-green-500 mr-2"></i> 1 Active Event</li>
                                 <li class="flex items-center"><i class="ph ph-check text-green-500 mr-2"></i> Unlimited Attendees</li>
                             </ul>
-                            <button disabled class="w-full py-3 rounded bg-gray-100 text-gray-400 font-bold cursor-not-allowed">Default</button>
+                            <button disabled class="w-full py-3 rounded-xl bg-gray-100 text-gray-400 font-bold cursor-not-allowed">Current</button>
                         </div>
                         
                         <!-- Tier 1 -->
-                        <div class="bg-white rounded-xl shadow-lg border-t-4 border-blue-500 p-6 flex flex-col hover:scale-105 transition transform">
+                        <div class="bg-white rounded-2xl shadow-lg border-t-4 border-blue-500 p-6 flex flex-col hover:shadow-xl transition transform hover:-translate-y-1">
                             <h3 class="text-lg font-bold text-blue-500 uppercase tracking-widest">Starter</h3>
                             <div class="my-4 flex items-baseline"><span class="text-4xl font-bold text-gray-800">$5</span><span class="text-gray-500 ml-1">/mo</span></div>
                             <ul class="space-y-3 mb-8 flex-1 text-sm text-gray-600">
                                 <li class="flex items-center"><i class="ph ph-check text-green-500 mr-2"></i> Unlimited Events</li>
                                 <li class="flex items-center"><i class="ph ph-check text-green-500 mr-2"></i> 500 Attendees/mo</li>
                             </ul>
-                            <button onclick="subManager.initUpgrade('tier1', '5.00')" class="w-full py-3 rounded bg-blue-500 hover:bg-blue-600 text-white font-bold shadow">Upgrade</button>
+                            <button onclick="subManager.initUpgrade('tier1', '5.00')" class="w-full py-3 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold shadow-lg">Upgrade</button>
                         </div>
 
                         <!-- Tier 2 -->
-                        <div class="bg-white rounded-xl shadow-lg border-t-4 border-earth-green p-6 flex flex-col hover:scale-105 transition transform relative">
-                            <div class="absolute top-0 right-0 bg-earth-green text-white text-xs font-bold px-2 py-1 rounded-bl">POPULAR</div>
+                        <div class="bg-white rounded-2xl shadow-xl border-t-4 border-earth-green p-6 flex flex-col hover:shadow-2xl transition transform hover:-translate-y-2 relative">
+                            <div class="absolute top-0 right-0 bg-earth-green text-white text-xs font-bold px-3 py-1 rounded-bl-xl">POPULAR</div>
                             <h3 class="text-lg font-bold text-earth-green uppercase tracking-widest">Growth</h3>
                             <div class="my-4 flex items-baseline"><span class="text-4xl font-bold text-gray-800">$15</span><span class="text-gray-500 ml-1">/mo</span></div>
                             <ul class="space-y-3 mb-8 flex-1 text-sm text-gray-600">
                                 <li class="flex items-center"><i class="ph ph-check text-green-500 mr-2"></i> Unlimited Events</li>
                                 <li class="flex items-center"><i class="ph ph-check text-green-500 mr-2"></i> 2,000 Attendees/mo</li>
                             </ul>
-                            <button onclick="subManager.initUpgrade('tier2', '15.00')" class="w-full py-3 rounded bg-earth-green hover:bg-green-700 text-white font-bold shadow">Upgrade</button>
+                            <button onclick="subManager.initUpgrade('tier2', '15.00')" class="w-full py-3 rounded-xl bg-earth-green hover:bg-green-700 text-white font-bold shadow-lg">Upgrade</button>
                         </div>
 
                         <!-- Tier 3 -->
-                        <div class="bg-gray-900 rounded-xl shadow-lg border border-gray-800 p-6 flex flex-col hover:scale-105 transition transform text-white">
+                        <div class="bg-gray-900 rounded-2xl shadow-lg border border-gray-800 p-6 flex flex-col hover:shadow-xl transition transform hover:-translate-y-1 text-white">
                             <h3 class="text-lg font-bold text-yellow-400 uppercase tracking-widest">Pro</h3>
                             <div class="my-4 flex items-baseline"><span class="text-4xl font-bold text-white">$30</span><span class="text-gray-400 ml-1">/mo</span></div>
                             <ul class="space-y-3 mb-8 flex-1 text-sm text-gray-300">
@@ -215,66 +283,56 @@
                                 <li class="flex items-center"><i class="ph ph-check text-yellow-400 mr-2"></i> Unlimited Attendees</li>
                                 <li class="flex items-center"><i class="ph ph-check text-yellow-400 mr-2"></i> Priority Support</li>
                             </ul>
-                            <button onclick="subManager.initUpgrade('tier3', '30.00')" class="w-full py-3 rounded bg-yellow-400 hover:bg-yellow-500 text-black font-bold shadow">Go Unlimited</button>
+                            <button onclick="subManager.initUpgrade('tier3', '30.00')" class="w-full py-3 rounded-xl bg-yellow-400 hover:bg-yellow-500 text-black font-bold shadow-lg">Go Unlimited</button>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Subscription Checkout Modal -->
-                <div id="sub-modal" class="hidden fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center backdrop-blur-sm">
-                    <div class="bg-white p-8 rounded-lg max-w-sm w-full relative">
-                        <button onclick="document.getElementById('sub-modal').classList.add('hidden')" class="absolute top-2 right-2 text-gray-400"><i class="ph ph-x text-xl"></i></button>
-                        <h3 class="text-xl font-bold mb-2">Confirm Upgrade</h3>
-                        <p class="text-sm text-gray-600 mb-4">Upgrading to <span id="sub-name" class="font-bold"></span></p>
-                        <div id="sub-paypal-container"></div>
                     </div>
                 </div>
 
                 <!-- CREATE EVENT -->
-                <div id="section-create" class="dash-section hidden max-w-4xl mx-auto">
-                    <div class="bg-white rounded-lg shadow-lg p-6 sm:p-8">
+                <div id="section-create" class="dash-section hidden max-w-4xl mx-auto animate-fade-in">
+                    <div class="bg-white rounded-2xl shadow-sm p-6 sm:p-8 border border-gray-100">
                         <div class="flex justify-between items-center mb-6 border-b pb-4">
                             <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Publish New Event</h2>
-                            <button onclick="window.askAIToFill()" class="text-xs bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full font-bold flex items-center hover:bg-indigo-100">
-                                <i class="ph ph-magic-wand mr-1"></i> Auto-Fill with AI
+                            <button onclick="window.askAIToFill()" class="text-xs bg-indigo-50 text-indigo-700 px-4 py-2 rounded-full font-bold flex items-center hover:bg-indigo-100 transition">
+                                <i class="ph ph-magic-wand mr-1 text-lg"></i> Auto-Fill with AI
                             </button>
                         </div>
                         <form id="create-event-form" class="space-y-6">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div class="md:col-span-2"><label class="block text-sm font-medium">Event Title</label><input type="text" id="evt-title" required class="w-full px-4 py-2 border rounded"></div>
-                                <div><label class="block text-sm font-medium">Date</label><input type="date" id="evt-date" required class="w-full px-4 py-2 border rounded"></div>
-                                <div><label class="block text-sm font-medium">Time</label><input type="time" id="evt-time" required class="w-full px-4 py-2 border rounded"></div>
-                                <div class="md:col-span-2"><label class="block text-sm font-medium">Location</label><input type="text" id="evt-location" required class="w-full px-4 py-2 border rounded"></div>
-                                <div class="md:col-span-2"><label class="block text-sm font-medium">Description</label><textarea id="evt-desc" rows="3" required class="w-full px-4 py-2 border rounded"></textarea></div>
+                                <div class="md:col-span-2"><label class="block text-sm font-bold text-gray-700 mb-1">Event Title</label><input type="text" id="evt-title" required class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-earth-green outline-none transition"></div>
+                                <div><label class="block text-sm font-bold text-gray-700 mb-1">Date</label><input type="date" id="evt-date" required class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-earth-green outline-none transition"></div>
+                                <div><label class="block text-sm font-bold text-gray-700 mb-1">Time</label><input type="time" id="evt-time" required class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-earth-green outline-none transition"></div>
+                                <div class="md:col-span-2"><label class="block text-sm font-bold text-gray-700 mb-1">Location</label><input type="text" id="evt-location" required class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-earth-green outline-none transition"></div>
+                                <div class="md:col-span-2"><label class="block text-sm font-bold text-gray-700 mb-1">Description</label><textarea id="evt-desc" rows="3" required class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-earth-green outline-none transition"></textarea></div>
                             </div>
                             <!-- Financials -->
                             <div class="border-t pt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div><label class="block text-sm font-medium">Tax Rate (%)</label><input type="number" id="evt-tax" class="w-full px-4 py-2 border rounded" placeholder="0"></div>
-                                <div><label class="block text-sm font-medium">Promo Code</label><input type="text" id="evt-promo-code" class="w-full px-4 py-2 border rounded" placeholder="CODE"></div>
-                                <div><label class="block text-sm font-medium">Discount (%)</label><input type="number" id="evt-promo-discount" class="w-full px-4 py-2 border rounded" placeholder="0"></div>
+                                <div><label class="block text-sm font-bold text-gray-700 mb-1">Tax Rate (%)</label><input type="number" id="evt-tax" class="w-full px-4 py-3 border border-gray-200 rounded-lg outline-none" placeholder="0"></div>
+                                <div><label class="block text-sm font-bold text-gray-700 mb-1">Promo Code</label><input type="text" id="evt-promo-code" class="w-full px-4 py-3 border border-gray-200 rounded-lg outline-none" placeholder="CODE"></div>
+                                <div><label class="block text-sm font-bold text-gray-700 mb-1">Discount (%)</label><input type="number" id="evt-promo-discount" class="w-full px-4 py-3 border border-gray-200 rounded-lg outline-none" placeholder="0"></div>
                             </div>
                             <!-- Tiers -->
                             <div class="border-t pt-6">
-                                <div class="flex justify-between mb-4"><h3 class="font-bold">Tickets</h3><button type="button" onclick="tierManager.addTier()" class="text-xs bg-blue-50 text-blue-600 px-3 py-1 rounded">+ Add Tier</button></div>
+                                <div class="flex justify-between mb-4"><h3 class="font-bold text-gray-800">Tickets</h3><button type="button" onclick="tierManager.addTier()" class="text-xs bg-blue-50 text-blue-600 px-3 py-1 rounded-full font-bold hover:bg-blue-100 transition">+ Add Tier</button></div>
                                 <div id="tiers-container" class="space-y-3"></div>
                             </div>
                             <!-- Image -->
                             <div class="border-t pt-6">
-                                <label class="block text-sm font-medium mb-2">Cover Image</label>
-                                <div class="flex space-x-2 mb-2">
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Cover Image</label>
+                                <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mb-2">
                                     <input type="file" id="evt-image" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" onchange="dataManager.handleImagePreview(this)">
-                                    <button type="button" onclick="window.openImageGenerator()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-3 py-1 rounded font-bold shadow whitespace-nowrap">
+                                    <button type="button" onclick="window.openImageGenerator()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-4 py-2 rounded-full font-bold shadow whitespace-nowrap transition">
                                         <i class="ph ph-paint-brush-broad mr-1"></i> Generate AI
                                     </button>
                                 </div>
                                 <input type="hidden" id="evt-image-base64">
-                                <div id="image-preview-container" class="mt-2 h-32 bg-gray-100 rounded flex items-center justify-center overflow-hidden border border-dashed border-gray-300">
+                                <div id="image-preview-container" class="mt-2 h-32 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden border border-dashed border-gray-300">
                                     <span class="text-gray-400 text-xs">No image selected</span>
                                 </div>
                             </div>
                             <div class="flex justify-end space-x-3 pt-4 border-t">
-                                <button type="button" onclick="ui.showSection('overview')" class="px-4 py-2 border rounded">Cancel</button>
-                                <button type="submit" class="px-6 py-2 bg-earth-green text-white font-bold rounded shadow">Publish</button>
+                                <button type="button" onclick="ui.showSection('overview')" class="px-6 py-2 border border-gray-300 rounded-lg font-bold text-gray-600 hover:bg-gray-50 transition">Cancel</button>
+                                <button type="submit" class="px-8 py-2 bg-earth-green text-white font-bold rounded-lg shadow-lg hover:bg-blue-600 transition transform hover:scale-105">Publish</button>
                             </div>
                         </form>
                     </div>
@@ -284,35 +342,55 @@
         </div>
     </div>
 
-    <!-- AI SIDEBAR (ADDED) -->
-    <div id="ai-sidebar" class="w-80 bg-white border-l border-gray-200 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 absolute right-0 top-16 bottom-0 flex flex-col">
-        <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-indigo-50">
-            <div>
-                <h3 class="font-bold text-indigo-900 flex items-center">
-                    <i class="ph ph-sparkle-fill mr-2 text-indigo-500"></i> AI Co-Pilot
-                </h3>
-                <p class="text-xs text-indigo-600">Your event assistant</p>
+    <!-- AI CO-PILOT WIDGET CONTAINER -->
+    <div class="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-4">
+        
+        <!-- Chat Window (Pop-up Widget Style) -->
+        <div id="ai-chat-window" class="hidden bg-white w-80 sm:w-96 h-[500px] max-h-[70vh] rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden transition-all duration-300 origin-bottom-right chat-enter">
+            <!-- Header -->
+            <div class="bg-indigo-600 text-white p-4 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <h3 class="font-bold text-sm">TEPE Co-Pilot</h3>
+                </div>
+                <button onclick="toggleAICopilot()" class="text-indigo-200 hover:text-white"><i class="ph ph-x"></i></button>
             </div>
-            <button onclick="toggleAICopilot()" class="text-gray-400 hover:text-gray-600"><i class="ph ph-x"></i></button>
-        </div>
-        <div id="ai-chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
-            <div class="flex items-start">
-                <div class="bg-white border border-gray-200 p-3 rounded-lg rounded-tl-none shadow-sm text-sm text-gray-700">
-                    Hi! Need help writing a description, ideas for prices, or analyzing your data?
+            
+            <!-- Messages -->
+            <div id="ai-chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 text-sm">
+                <div class="flex items-start">
+                    <div class="bg-white border border-gray-200 p-3 rounded-lg rounded-tl-none shadow-sm text-gray-700">
+                        Hello! I can help you draft descriptions, price tickets, or analyze your sales data.
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="p-4 border-t border-gray-200 bg-white">
-            <div class="flex items-center gap-2">
-                <input type="text" id="ai-chat-input" class="flex-1 border border-gray-300 rounded-full px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Ask AI..." onkeypress="if(event.key === 'Enter') sendAIMessage()">
-                <button onclick="sendAIMessage()" class="w-9 h-9 bg-indigo-600 text-white rounded-full flex items-center justify-center hover:bg-indigo-700 shadow transition">
+
+            <!-- Input -->
+            <div class="p-3 bg-white border-t border-gray-100 flex items-center gap-2">
+                <input type="text" id="ai-chat-input" class="flex-1 bg-gray-100 border-0 rounded-full px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Ask AI..." onkeypress="if(event.key === 'Enter') sendAIMessage()">
+                <button onclick="sendAIMessage()" class="w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center hover:bg-indigo-700 shadow transition">
                     <i class="ph ph-paper-plane-right"></i>
                 </button>
             </div>
         </div>
+
+        <!-- Floating Action Button (Visible on ALL screens) -->
+        <button onclick="window.toggleAICopilot()" class="bg-indigo-600 hover:bg-indigo-700 text-white w-16 h-16 rounded-full shadow-2xl animate-float transition-transform transform hover:scale-110 group flex flex-col items-center justify-center">
+            <i class="ph ph-sparkle-fill text-2xl group-hover:mb-1 transition-all"></i>
+            <span class="text-[9px] font-bold uppercase tracking-wider opacity-90">Co-Pilot</span>
+        </button>
     </div>
 
-    <!-- IMAGE GENERATOR MODAL (ADDED) -->
+    <!-- Modals (Subscription & Image Gen) -->
+    <div id="sub-modal" class="hidden fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-white p-8 rounded-xl max-w-sm w-full relative shadow-2xl m-4">
+            <button onclick="document.getElementById('sub-modal').classList.add('hidden')" class="absolute top-4 right-4 text-gray-400 hover:text-red-500"><i class="ph ph-x text-xl"></i></button>
+            <h3 class="text-xl font-bold mb-2 text-gray-800">Confirm Upgrade</h3>
+            <p class="text-sm text-gray-600 mb-6">Upgrading to <span id="sub-name" class="font-bold text-earth-green"></span> Plan</p>
+            <div id="sub-paypal-container"></div>
+        </div>
+    </div>
+
     <div id="img-gen-modal" class="fixed inset-0 z-[60] bg-black bg-opacity-80 flex items-center justify-center hidden backdrop-blur-sm">
         <div class="bg-white w-full max-w-lg rounded-2xl p-6 shadow-2xl m-4">
             <div class="flex justify-between items-center mb-4">
@@ -356,10 +434,14 @@
         let userPlan = 'free';
         const MASTER_EMAIL = "akimble109@gamil.com";
 
-        // --- AI LOGIC (ADDED) ---
+        // --- AI LOGIC ---
         async function initAI() { try { const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_API_KEY}`); const d=await r.json(); if(d.models) { const v=d.models.filter(m=>m.supportedGenerationMethods?.includes("generateContent")); if(v.length) aiModelName=v[0].name.replace('models/',''); } } catch(e){} }
 
-        window.toggleAICopilot = () => { document.getElementById('ai-sidebar').classList.toggle('translate-x-full'); };
+        window.toggleAICopilot = () => { 
+            const win = document.getElementById('ai-chat-window');
+            win.classList.toggle('hidden');
+            if (!win.classList.contains('hidden')) document.getElementById('ai-chat-input').focus();
+        };
         
         window.sendAIMessage = async () => {
             const input = document.getElementById('ai-chat-input');
@@ -390,7 +472,6 @@
 
         window.askAIToFill = async () => {
              const title = prompt("Event Name?"); if(!title) return;
-             // Simple visual feedback
              document.getElementById('evt-title').value = "Thinking...";
              try {
                  const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
@@ -426,7 +507,7 @@
             document.getElementById('img-gen-modal').classList.add('hidden');
         };
 
-        // --- EXISTING IDENTITY ROUTINE ---
+        // --- IDENTITY ROUTINE ---
         async function verifyOrganizerIdentity(user) {
             if (user.email === MASTER_EMAIL) return;
             const userRef = doc(db, "users", user.uid);
@@ -457,7 +538,7 @@
             } catch (e) { console.error("Identity check failed:", e); }
         }
 
-        // --- SUBSCRIPTION MANAGER (PRESERVED) ---
+        // --- SUBSCRIPTION MANAGER ---
         window.subManager = {
             checkLimits: () => {
                 if (currentUser.email === MASTER_EMAIL) return true;
@@ -545,10 +626,8 @@
             createEvent: async (e) => {
                 e.preventDefault();
                 if(!subManager.checkLimits()) return;
-                
                 const tiers = tierManager.getTiers();
                 if(tiers.length===0) return alert("Add a ticket tier");
-
                 try {
                     await addDoc(collection(db, "events"), {
                         title: document.getElementById('evt-title').value,
@@ -583,85 +662,40 @@
             getTiers: () => Array.from(document.querySelectorAll('.tier-row')).map(r => ({name:r.querySelector('.tier-name').value, price:r.querySelector('.tier-price').value, capacity:r.querySelector('.tier-capacity').value})).filter(t=>t.name&&t.price)
         };
 
-        // --- SCANNER MANAGER (UPDATED) ---
         window.scannerManager = {
              startScanner: () => {
-                 // UI State
                  document.getElementById('scan-placeholder').classList.add('hidden');
                  document.getElementById('reader').classList.remove('hidden');
-                 
-                 // If already running, don't restart without stop
-                 if(html5QrCode) { 
-                     html5QrCode.stop().then(runScanner).catch(runScanner); 
-                 } else {
-                     runScanner();
-                 }
-
+                 if(html5QrCode) { html5QrCode.stop().then(runScanner).catch(runScanner); } else { runScanner(); }
                  function runScanner() {
                      html5QrCode = new Html5Qrcode("reader");
-                     html5QrCode.start(
-                         { facingMode: "environment" }, 
-                         { fps: 10, qrbox: { width: 250, height: 250 } },
-                         async (decodedText, decodedResult) => {
-                             // Success
-                             console.log(`Scan result: ${decodedText}`);
-                             await scannerManager.verifyTicket(decodedText);
-                             html5QrCode.stop();
-                         },
-                         (errorMessage) => {
-                             // parsing error, ignore
-                         }
-                     ).catch(err => {
-                         console.error(err);
-                         alert("Camera failed to start. Please allow camera permissions.");
-                         document.getElementById('scan-placeholder').classList.remove('hidden');
-                     });
+                     html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } },
+                         async (decodedText) => { console.log(decodedText); await scannerManager.verifyTicket(decodedText); html5QrCode.stop(); },
+                         (errorMessage) => {}
+                     ).catch(err => { alert("Camera failed."); document.getElementById('scan-placeholder').classList.remove('hidden'); });
                  }
              },
              verifyTicket: async (ticketId) => {
                  const statusEl = document.getElementById('scan-status');
                  const resultEl = document.getElementById('scan-result');
                  const detailsEl = document.getElementById('scan-details');
-                 
                  document.getElementById('reader').classList.add('hidden');
                  resultEl.classList.remove('hidden');
                  statusEl.innerText = "Verifying...";
-                 statusEl.className = "text-2xl font-bold text-gray-600";
-                 detailsEl.innerHTML = '';
-
                  try {
-                     // Check DB
                      const q = query(collection(db, "tickets"), where("customer", "==", ticketId));
                      const snap = await getDocs(q);
-                     
                      if (snap.empty) {
-                         statusEl.innerText = "INVALID TICKET";
-                         statusEl.className = "text-3xl font-bold text-red-600";
+                         statusEl.innerText = "INVALID TICKET"; statusEl.className = "text-3xl font-bold text-red-600";
                          detailsEl.innerHTML = `<p class="text-gray-600">ID: ${ticketId} not found.</p>`;
-                         // Play error sound?
                      } else {
                          const docData = snap.docs[0].data();
-                         // Ideally check if already scanned, but basic verification first
-                         statusEl.innerText = "VALID TICKET";
-                         statusEl.className = "text-3xl font-bold text-green-600";
-                         detailsEl.innerHTML = `
-                             <p class="font-bold text-lg">${docData.event}</p>
-                             <p class="text-gray-600">${docData.tier}</p>
-                             <p class="text-xs text-gray-400 mt-2">ID: ${ticketId}</p>
-                         `;
-                         // Mark as checked-in logic could go here
+                         statusEl.innerText = "VALID TICKET"; statusEl.className = "text-3xl font-bold text-green-600";
+                         detailsEl.innerHTML = `<p class="font-bold text-lg">${docData.event}</p><p class="text-gray-600">${docData.tier}</p><p class="text-xs text-gray-400 mt-2">ID: ${ticketId}</p>`;
                      }
-                 } catch (e) {
-                     statusEl.innerText = "ERROR";
-                     statusEl.className = "text-2xl font-bold text-red-600";
-                     detailsEl.innerText = e.message;
-                     console.error(e);
-                 }
+                 } catch (e) { statusEl.innerText = "ERROR"; detailsEl.innerText = e.message; }
              },
-             reset: () => {
-                 document.getElementById('scan-result').classList.add('hidden');
-                 scannerManager.startScanner();
-             }
+             reset: () => { document.getElementById('scan-result').classList.add('hidden'); scannerManager.startScanner(); }
         };
 
         window.ui = {
@@ -677,7 +711,6 @@
         
         window.analyticsManager = { loadData: async () => {}, filterByEvent: () => {} };
 
-        // --- INIT ---
         document.getElementById('auth-form').addEventListener('submit', authManager.handleAuth);
         document.getElementById('create-event-form').addEventListener('submit', dataManager.createEvent);
 
@@ -685,13 +718,14 @@
             currentUser = user;
             if(user) {
                 await verifyOrganizerIdentity(user);
-                initAI(); // Initialize AI on login
-
+                initAI(); 
                 document.getElementById('view-login').classList.add('hidden');
                 document.getElementById('view-dashboard').classList.remove('hidden');
                 document.getElementById('user-display').innerText = user.email;
+                document.getElementById('mobile-user-display').innerText = user.email;
+                document.getElementById('header-avatar').innerText = user.email[0].toUpperCase();
+                document.getElementById('mobile-avatar').innerText = user.email[0].toUpperCase();
                 
-                // Load Plan
                 const userDoc = await getDoc(doc(db, "users", user.uid));
                 if(userDoc.exists()) {
                     userPlan = userDoc.data().plan || 'free';
@@ -699,9 +733,9 @@
                     if(user.email === MASTER_EMAIL) planLabel = "MASTER ADMIN";
                     document.getElementById('plan-badge').innerText = planLabel;
                     document.getElementById('current-plan-name').innerText = planLabel;
+                    document.getElementById('mobile-plan-display').innerText = planLabel;
                 }
 
-                // Load Events
                 const q = query(collection(db, "events"), where("creatorId", "==", user.uid));
                 onSnapshot(q, snap => {
                     const body = document.getElementById('events-table-body');
@@ -710,7 +744,7 @@
                     snap.forEach(d => {
                         const evt = d.data(); evt.id = d.id;
                         myEvents.push(evt);
-                        body.innerHTML += `<tr><td class="px-4 py-2">${evt.title}</td><td class="px-4 py-2">${evt.date}</td><td class="px-4 py-2"><button onclick="dataManager.deleteEvent('${evt.id}')" class="text-red-500">Delete</button></td></tr>`;
+                        body.innerHTML += `<tr><td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${evt.title}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${evt.date}</td><td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"><button onclick="dataManager.deleteEvent('${evt.id}')" class="text-red-600 hover:text-red-900">Delete</button></td></tr>`;
                     });
                     document.getElementById('stat-active-count').innerText = myEvents.length;
                 });
