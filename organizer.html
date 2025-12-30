@@ -149,13 +149,21 @@
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         <div class="bg-black rounded-lg overflow-hidden relative h-64 sm:h-96"><div id="reader" class="w-full h-full"></div></div>
                         <div class="bg-white rounded-lg shadow-lg p-6 flex flex-col justify-center text-center">
-                            <div id="scan-placeholder"><i class="ph ph-qr-code text-6xl mb-4 text-gray-400"></i><button onclick="scannerManager.startScanner()" class="mt-4 bg-earth-green text-white px-6 py-2 rounded">Start Camera</button></div>
-                            <div id="scan-result" class="hidden"><h3 id="scan-status" class="text-2xl font-bold">Verifying...</h3><button onclick="scannerManager.reset()" class="mt-4 underline">Scan Next</button></div>
+                            <div id="scan-placeholder">
+                                <i class="ph ph-qr-code text-6xl mb-4 text-gray-400"></i>
+                                <p class="text-gray-500 mb-4">Point your camera at a ticket QR code</p>
+                                <button onclick="scannerManager.startScanner()" class="bg-earth-green text-white px-6 py-3 rounded-lg font-bold shadow hover:bg-blue-600 transition">Start Camera</button>
+                            </div>
+                            <div id="scan-result" class="hidden">
+                                <h3 id="scan-status" class="text-2xl font-bold mb-2">Verifying...</h3>
+                                <div id="scan-details" class="bg-gray-50 p-4 rounded mb-4"></div>
+                                <button onclick="scannerManager.reset()" class="bg-gray-800 text-white px-6 py-2 rounded shadow hover:bg-black">Scan Next</button>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- PLANS & BILLING (PRESERVED) -->
+                <!-- PLANS & BILLING -->
                 <div id="section-plans" class="dash-section hidden">
                     <div class="text-center mb-10">
                         <h2 class="text-3xl font-bold text-gray-800">Upgrade Your Capacity</h2>
@@ -575,6 +583,87 @@
             getTiers: () => Array.from(document.querySelectorAll('.tier-row')).map(r => ({name:r.querySelector('.tier-name').value, price:r.querySelector('.tier-price').value, capacity:r.querySelector('.tier-capacity').value})).filter(t=>t.name&&t.price)
         };
 
+        // --- SCANNER MANAGER (UPDATED) ---
+        window.scannerManager = {
+             startScanner: () => {
+                 // UI State
+                 document.getElementById('scan-placeholder').classList.add('hidden');
+                 document.getElementById('reader').classList.remove('hidden');
+                 
+                 // If already running, don't restart without stop
+                 if(html5QrCode) { 
+                     html5QrCode.stop().then(runScanner).catch(runScanner); 
+                 } else {
+                     runScanner();
+                 }
+
+                 function runScanner() {
+                     html5QrCode = new Html5Qrcode("reader");
+                     html5QrCode.start(
+                         { facingMode: "environment" }, 
+                         { fps: 10, qrbox: { width: 250, height: 250 } },
+                         async (decodedText, decodedResult) => {
+                             // Success
+                             console.log(`Scan result: ${decodedText}`);
+                             await scannerManager.verifyTicket(decodedText);
+                             html5QrCode.stop();
+                         },
+                         (errorMessage) => {
+                             // parsing error, ignore
+                         }
+                     ).catch(err => {
+                         console.error(err);
+                         alert("Camera failed to start. Please allow camera permissions.");
+                         document.getElementById('scan-placeholder').classList.remove('hidden');
+                     });
+                 }
+             },
+             verifyTicket: async (ticketId) => {
+                 const statusEl = document.getElementById('scan-status');
+                 const resultEl = document.getElementById('scan-result');
+                 const detailsEl = document.getElementById('scan-details');
+                 
+                 document.getElementById('reader').classList.add('hidden');
+                 resultEl.classList.remove('hidden');
+                 statusEl.innerText = "Verifying...";
+                 statusEl.className = "text-2xl font-bold text-gray-600";
+                 detailsEl.innerHTML = '';
+
+                 try {
+                     // Check DB
+                     const q = query(collection(db, "tickets"), where("customer", "==", ticketId));
+                     const snap = await getDocs(q);
+                     
+                     if (snap.empty) {
+                         statusEl.innerText = "INVALID TICKET";
+                         statusEl.className = "text-3xl font-bold text-red-600";
+                         detailsEl.innerHTML = `<p class="text-gray-600">ID: ${ticketId} not found.</p>`;
+                         // Play error sound?
+                     } else {
+                         const docData = snap.docs[0].data();
+                         // Ideally check if already scanned, but basic verification first
+                         statusEl.innerText = "VALID TICKET";
+                         statusEl.className = "text-3xl font-bold text-green-600";
+                         detailsEl.innerHTML = `
+                             <p class="font-bold text-lg">${docData.event}</p>
+                             <p class="text-gray-600">${docData.tier}</p>
+                             <p class="text-xs text-gray-400 mt-2">ID: ${ticketId}</p>
+                         `;
+                         // Mark as checked-in logic could go here
+                     }
+                 } catch (e) {
+                     statusEl.innerText = "ERROR";
+                     statusEl.className = "text-2xl font-bold text-red-600";
+                     detailsEl.innerText = e.message;
+                     console.error(e);
+                 }
+             },
+             reset: () => {
+                 document.getElementById('scan-result').classList.add('hidden');
+                 scannerManager.startScanner();
+             }
+        };
+
         window.ui = {
             toggleSidebar: () => { document.getElementById('sidebar').classList.toggle('-translate-x-full'); document.getElementById('sidebar-overlay').classList.toggle('hidden'); },
             showSection: (s) => {
@@ -587,7 +676,6 @@
         };
         
         window.analyticsManager = { loadData: async () => {}, filterByEvent: () => {} };
-        window.scannerManager = { startScanner: () => {}, reset: () => {} };
 
         // --- INIT ---
         document.getElementById('auth-form').addEventListener('submit', authManager.handleAuth);
