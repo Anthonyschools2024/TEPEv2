@@ -10,6 +10,16 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <!-- HTML5-QRCode Scanner Library -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    
+    <!-- Google Generative AI SDK -->
+    <script type="importmap">
+      {
+        "imports": {
+          "@google/generative-ai": "https://esm.run/@google/generative-ai"
+        }
+      }
+    </script>
+
     <!-- PayPal SDK -->
     <script src="https://www.paypal.com/sdk/js?client-id=AbIM8PI16Q_0SuzeJ3s6tDNwhIYd-iH0PeSuIrbyi7ihtBCJ9etdGr0p0jukSDc26Oxlk08PvO0fUKk0&currency=USD&components=buttons&disable-funding=credit,paylater" onerror="window.paypalLoadError=true"></script>
     
@@ -28,6 +38,13 @@
             }
         }
     </script>
+    <style>
+        .typing-dot { animation: typing 1.4s infinite ease-in-out both; }
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes typing { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+        .ai-response strong { font-weight: bold; color: #4B5563; }
+    </style>
 </head>
 <body class="bg-earth-sand text-earth-dark font-sans antialiased h-screen overflow-hidden">
 
@@ -63,6 +80,12 @@
                 <span class="font-bold text-lg sm:text-xl tracking-wider truncate text-earth-green">Organizer Dashboard</span>
             </div>
             <div class="flex items-center space-x-2 sm:space-x-4">
+                <!-- AI CO-PILOT BUTTON -->
+                <button onclick="window.toggleAICopilot()" class="hidden md:flex items-center space-x-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-3 py-1.5 rounded-full shadow hover:shadow-lg transition transform hover:-translate-y-0.5 text-xs font-bold mr-2">
+                    <i class="ph ph-sparkle-fill"></i>
+                    <span>AI Co-Pilot</span>
+                </button>
+
                 <span id="plan-badge" class="px-2 py-1 rounded text-xs font-bold uppercase bg-gray-200 text-gray-600">Free Tier</span>
                 <span id="user-display" class="text-xs sm:text-sm text-gray-600 font-medium truncate max-w-[120px] sm:max-w-none">...</span>
                 <button onclick="authManager.logout()" class="text-red-500 hover:text-red-700 font-medium text-xs sm:text-sm">Logout</button>
@@ -81,7 +104,7 @@
                 </div>
             </aside>
 
-            <main class="flex-1 bg-earth-sand p-4 sm:p-6 overflow-y-auto w-full">
+            <main class="flex-1 bg-earth-sand p-4 sm:p-6 overflow-y-auto w-full relative">
                 
                 <!-- OVERVIEW -->
                 <div id="section-overview" class="dash-section">
@@ -132,7 +155,7 @@
                     </div>
                 </div>
 
-                <!-- PLANS & BILLING -->
+                <!-- PLANS & BILLING (PRESERVED) -->
                 <div id="section-plans" class="dash-section hidden">
                     <div class="text-center mb-10">
                         <h2 class="text-3xl font-bold text-gray-800">Upgrade Your Capacity</h2>
@@ -202,7 +225,12 @@
                 <!-- CREATE EVENT -->
                 <div id="section-create" class="dash-section hidden max-w-4xl mx-auto">
                     <div class="bg-white rounded-lg shadow-lg p-6 sm:p-8">
-                        <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-6 border-b pb-4">Publish New Event</h2>
+                        <div class="flex justify-between items-center mb-6 border-b pb-4">
+                            <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Publish New Event</h2>
+                            <button onclick="window.askAIToFill()" class="text-xs bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full font-bold flex items-center hover:bg-indigo-100">
+                                <i class="ph ph-magic-wand mr-1"></i> Auto-Fill with AI
+                            </button>
+                        </div>
                         <form id="create-event-form" class="space-y-6">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div class="md:col-span-2"><label class="block text-sm font-medium">Event Title</label><input type="text" id="evt-title" required class="w-full px-4 py-2 border rounded"></div>
@@ -225,8 +253,16 @@
                             <!-- Image -->
                             <div class="border-t pt-6">
                                 <label class="block text-sm font-medium mb-2">Cover Image</label>
-                                <input type="file" id="evt-image" accept="image/*" required class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" onchange="dataManager.handleImagePreview(this)">
+                                <div class="flex space-x-2 mb-2">
+                                    <input type="file" id="evt-image" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" onchange="dataManager.handleImagePreview(this)">
+                                    <button type="button" onclick="window.openImageGenerator()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-3 py-1 rounded font-bold shadow whitespace-nowrap">
+                                        <i class="ph ph-paint-brush-broad mr-1"></i> Generate AI
+                                    </button>
+                                </div>
                                 <input type="hidden" id="evt-image-base64">
+                                <div id="image-preview-container" class="mt-2 h-32 bg-gray-100 rounded flex items-center justify-center overflow-hidden border border-dashed border-gray-300">
+                                    <span class="text-gray-400 text-xs">No image selected</span>
+                                </div>
                             </div>
                             <div class="flex justify-end space-x-3 pt-4 border-t">
                                 <button type="button" onclick="ui.showSection('overview')" class="px-4 py-2 border rounded">Cancel</button>
@@ -240,62 +276,203 @@
         </div>
     </div>
 
+    <!-- AI SIDEBAR (ADDED) -->
+    <div id="ai-sidebar" class="w-80 bg-white border-l border-gray-200 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 absolute right-0 top-16 bottom-0 flex flex-col">
+        <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-indigo-50">
+            <div>
+                <h3 class="font-bold text-indigo-900 flex items-center">
+                    <i class="ph ph-sparkle-fill mr-2 text-indigo-500"></i> AI Co-Pilot
+                </h3>
+                <p class="text-xs text-indigo-600">Your event assistant</p>
+            </div>
+            <button onclick="toggleAICopilot()" class="text-gray-400 hover:text-gray-600"><i class="ph ph-x"></i></button>
+        </div>
+        <div id="ai-chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+            <div class="flex items-start">
+                <div class="bg-white border border-gray-200 p-3 rounded-lg rounded-tl-none shadow-sm text-sm text-gray-700">
+                    Hi! Need help writing a description, ideas for prices, or analyzing your data?
+                </div>
+            </div>
+        </div>
+        <div class="p-4 border-t border-gray-200 bg-white">
+            <div class="flex items-center gap-2">
+                <input type="text" id="ai-chat-input" class="flex-1 border border-gray-300 rounded-full px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Ask AI..." onkeypress="if(event.key === 'Enter') sendAIMessage()">
+                <button onclick="sendAIMessage()" class="w-9 h-9 bg-indigo-600 text-white rounded-full flex items-center justify-center hover:bg-indigo-700 shadow transition">
+                    <i class="ph ph-paper-plane-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- IMAGE GENERATOR MODAL (ADDED) -->
+    <div id="img-gen-modal" class="fixed inset-0 z-[60] bg-black bg-opacity-80 flex items-center justify-center hidden backdrop-blur-sm">
+        <div class="bg-white w-full max-w-lg rounded-2xl p-6 shadow-2xl m-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-800">Generate AI Flyer</h3>
+                <button onclick="document.getElementById('img-gen-modal').classList.add('hidden')" class="text-gray-400 hover:text-red-500"><i class="ph ph-x text-xl"></i></button>
+            </div>
+            <div class="mb-4">
+                <label class="text-xs font-bold text-gray-500 uppercase">Prompt</label>
+                <textarea id="img-gen-prompt" rows="3" class="w-full border border-gray-300 rounded-lg p-3 mt-1 focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Neon jazz concert poster, saxophone, dark purple background..."></textarea>
+            </div>
+            <button onclick="window.generateImage()" id="gen-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg shadow transition mb-4">
+                <i class="ph ph-magic-wand mr-2"></i> Generate
+            </button>
+            <div id="gen-result-container" class="hidden">
+                <img id="gen-result-img" src="" class="w-full h-48 object-cover rounded-md shadow-sm mb-4">
+                <button onclick="window.useGeneratedImage()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 rounded-lg shadow transition">Use This Image</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Firebase Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, deleteDoc, doc, where, getDocs, updateDoc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { GoogleGenerativeAI } from "@google/generative-ai";
 
         const firebaseConfig = { apiKey: "AIzaSyClJ0s2rXDFAMRJAQdjIlO7GsmH4mR1Vcs", authDomain: "tepe-v2.firebaseapp.com", projectId: "tepe-v2", storageBucket: "tepe-v2.firebasestorage.app", messagingSenderId: "830338278786", appId: "1:830338278786:web:98a7eabb282b6518d09b9b", measurementId: "G-P4L207DXG6" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         
+        // AI Configuration
+        const GEMINI_API_KEY = "AIzaSyAjo7t-S0FUsoFi5FMf4If3vGeylG1hUXg";
+        let aiModelName = 'gemini-1.5-flash';
+
         let currentUser = null;
         let isLoginMode = true;
         let myEvents = [];
         let html5QrCode = null;
         let userPlan = 'free';
-        const MASTER_EMAIL = "akimble109@gmail.com";
+        const MASTER_EMAIL = "akimble109@gamil.com";
 
-        // --- SUBSCRIPTION MANAGER ---
+        // --- AI LOGIC (ADDED) ---
+        async function initAI() { try { const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_API_KEY}`); const d=await r.json(); if(d.models) { const v=d.models.filter(m=>m.supportedGenerationMethods?.includes("generateContent")); if(v.length) aiModelName=v[0].name.replace('models/',''); } } catch(e){} }
+
+        window.toggleAICopilot = () => { document.getElementById('ai-sidebar').classList.toggle('translate-x-full'); };
+        
+        window.sendAIMessage = async () => {
+            const input = document.getElementById('ai-chat-input');
+            const msg = input.value.trim();
+            if(!msg) return;
+            addChatMessage('user', msg);
+            input.value = '';
+            const loadingId = addLoadingBubble();
+            try {
+                const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+                const model = genAI.getGenerativeModel({ model: aiModelName });
+                const context = `Organizer Assistant Context: Total Events: ${myEvents.length}. User Query: ${msg}`;
+                const result = await model.generateContent(context);
+                removeLoadingBubble(loadingId);
+                addChatMessage('ai', result.response.text());
+            } catch(e) { removeLoadingBubble(loadingId); addChatMessage('ai', "Error: " + e.message); }
+        };
+
+        function addChatMessage(role, text) {
+            const c = document.getElementById('ai-chat-messages');
+            const d = document.createElement('div');
+            d.className = `flex items-start ${role === 'user' ? 'justify-end' : ''}`;
+            d.innerHTML = `<div class="p-3 rounded-lg shadow-sm text-sm max-w-[85%] ${role === 'user' ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-white border border-gray-200 text-gray-700 rounded-tl-none ai-response'}">${text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>')}</div>`;
+            c.appendChild(d); c.scrollTop = c.scrollHeight;
+        }
+        function addLoadingBubble() { const id='l-'+Date.now(); const c=document.getElementById('ai-chat-messages'); const d=document.createElement('div'); d.id=id; d.innerHTML=`<div class="bg-gray-100 p-3 rounded-lg flex gap-1"><div class="w-1.5 h-1.5 bg-gray-400 rounded-full typing-dot"></div><div class="w-1.5 h-1.5 bg-gray-400 rounded-full typing-dot"></div></div>`; c.appendChild(d); return id; }
+        function removeLoadingBubble(id) { document.getElementById(id)?.remove(); }
+
+        window.askAIToFill = async () => {
+             const title = prompt("Event Name?"); if(!title) return;
+             // Simple visual feedback
+             document.getElementById('evt-title').value = "Thinking...";
+             try {
+                 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+                 const model = genAI.getGenerativeModel({ model: aiModelName });
+                 const res = await model.generateContent(`Generate JSON (description, location, tiers[{name,price,capacity}]) for event: "${title}". Return ONLY JSON.`);
+                 const txt = res.response.text().replace(/```json|```/g, '').trim();
+                 const data = JSON.parse(txt);
+                 document.getElementById('evt-title').value = title;
+                 document.getElementById('evt-desc').value = data.description;
+                 document.getElementById('evt-location').value = data.location;
+                 document.getElementById('tiers-container').innerHTML = '';
+                 if(data.tiers) data.tiers.forEach(t => tierManager.addTier(t.name, t.price, t.capacity));
+             } catch(e) { console.error(e); alert("AI Generation failed."); document.getElementById('evt-title').value = title; }
+        };
+
+        window.openImageGenerator = () => { document.getElementById('img-gen-modal').classList.remove('hidden'); document.getElementById('gen-result-container').classList.add('hidden'); };
+        
+        window.generateImage = async () => {
+            const p = document.getElementById('img-gen-prompt').value;
+            if(!p) return;
+            const btn = document.getElementById('gen-btn'); btn.disabled=true; btn.innerHTML="Generating...";
+            setTimeout(() => {
+                document.getElementById('gen-result-img').src = `https://image.pollinations.ai/prompt/${encodeURIComponent(p)}?width=800&height=600&nologo=true`;
+                document.getElementById('gen-result-container').classList.remove('hidden');
+                btn.disabled=false; btn.innerHTML="Generate";
+            }, 1500);
+        };
+        
+        window.useGeneratedImage = () => {
+            const url = document.getElementById('gen-result-img').src;
+            document.getElementById('evt-image-base64').value = url;
+            document.getElementById('image-preview-container').innerHTML = `<img src="${url}" class="w-full h-full object-cover">`;
+            document.getElementById('img-gen-modal').classList.add('hidden');
+        };
+
+        // --- EXISTING IDENTITY ROUTINE ---
+        async function verifyOrganizerIdentity(user) {
+            if (user.email === MASTER_EMAIL) return;
+            const userRef = doc(db, "users", user.uid);
+            try {
+                const snap = await getDoc(userRef);
+                if (snap.exists()) {
+                    const data = snap.data();
+                    if (!data.roles || !data.roles.includes('organizer') || !data.organizer_profile) {
+                        const roles = data.roles || [];
+                        if(!roles.includes('organizer')) roles.push('organizer');
+                        await setDoc(userRef, {
+                            roles: roles,
+                            organizer_profile: { status: 'active', joined_at: new Date(), email: user.email },
+                            plan: data.plan || 'free',
+                            createdAt: data.createdAt || new Date()
+                        }, { merge: true });
+                    }
+                } else {
+                    await setDoc(userRef, {
+                        email: user.email,
+                        roles: ['organizer'],
+                        organizer_profile: { status: 'active', joined_at: new Date(), email: user.email },
+                        plan: 'free',
+                        createdAt: new Date(),
+                        isAttendee: false 
+                    });
+                }
+            } catch (e) { console.error("Identity check failed:", e); }
+        }
+
+        // --- SUBSCRIPTION MANAGER (PRESERVED) ---
         window.subManager = {
             checkLimits: () => {
-                if (currentUser.email === MASTER_EMAIL) return true; // Master bypass
-
-                // LIMITS
-                // Free: Max 1 Event total history
-                // Tier 1: Max 500 total capacity this month
-                // Tier 2: Max 2000 total capacity this month
-                
+                if (currentUser.email === MASTER_EMAIL) return true;
                 if (userPlan === 'free') {
                     if (myEvents.length >= 1) {
-                        alert("Free Plan Limit Reached: You can only publish 1 event. Please upgrade to create unlimited events.");
+                        alert("Free Plan Limit Reached: Please upgrade to create more events.");
                         ui.showSection('plans');
                         return false;
                     }
                 } else if (userPlan === 'tier1' || userPlan === 'tier2') {
                     const limit = userPlan === 'tier1' ? 500 : 2000;
-                    
-                    // Calc current month usage
                     const now = new Date();
                     const currentMonthEvents = myEvents.filter(e => {
                         const d = new Date(e.createdAt.seconds * 1000);
                         return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
                     });
-
                     let usedCap = 0;
-                    currentMonthEvents.forEach(e => {
-                        if(e.tiers) e.tiers.forEach(t => usedCap += parseInt(t.capacity || 0));
-                    });
-
-                    // Add new event proposed capacity
+                    currentMonthEvents.forEach(e => { if(e.tiers) e.tiers.forEach(t => usedCap += parseInt(t.capacity || 0)); });
                     let newCap = 0;
                     const newTiers = tierManager.getTiers();
                     newTiers.forEach(t => newCap += parseInt(t.capacity || 0));
-
                     if ((usedCap + newCap) > limit) {
-                        alert(`Capacity Limit Exceeded! Your plan allows ${limit} attendees/month. You have used ${usedCap}. This event needs ${newCap}. Please upgrade.`);
+                        alert(`Capacity Limit Exceeded! Your plan allows ${limit} attendees/month. Please upgrade.`);
                         ui.showSection('plans');
                         return false;
                     }
@@ -312,19 +489,12 @@
                 paypal.Buttons({
                     style: { shape: 'rect', color: 'blue', layout: 'vertical', label: 'pay' },
                     createOrder: (data, actions) => {
-                        return actions.order.create({
-                            purchase_units: [{ description: `TEPE Plan ${plan}`, amount: { value: price } }]
-                        });
+                        return actions.order.create({ purchase_units: [{ description: `TEPE Plan ${plan}`, amount: { value: price } }] });
                     },
                     onApprove: (data, actions) => {
                         return actions.order.capture().then(async (details) => {
-                            // Update User DB
-                            await setDoc(doc(db, "users", currentUser.uid), {
-                                email: currentUser.email,
-                                plan: plan,
-                                planUpdated: new Date()
-                            }, { merge: true });
-                            alert("Upgrade Successful! Welcome to " + plan);
+                            await setDoc(doc(db, "users", currentUser.uid), { email: currentUser.email, plan: plan, planUpdated: new Date() }, { merge: true });
+                            alert("Upgrade Successful!");
                             location.reload();
                         });
                     }
@@ -338,23 +508,15 @@
                 isLoginMode = !isLoginMode;
                 const title = document.getElementById('auth-title'), btn = document.getElementById('auth-btn'), toggle = document.getElementById('auth-toggle-text');
                 document.getElementById('auth-error').classList.add('hidden');
-                if(isLoginMode) { title.innerText="Organizer Login"; btn.innerText="Access Dashboard"; toggle.innerHTML=`New? <button onclick="authManager.toggleMode()" class="text-earth-green font-bold hover:underline">Create</button>`; }
-                else { title.innerText="Create Account"; btn.innerText="Create Account"; toggle.innerHTML=`Have account? <button onclick="authManager.toggleMode()" class="text-earth-green font-bold hover:underline">Login</button>`; }
+                if(isLoginMode) { title.innerText="Organizer Login"; btn.innerText="Access Dashboard"; toggle.innerHTML=`New? <button onclick="authManager.toggleMode()" class="text-earth-green font-bold hover:underline ml-1">Create Account</button>`; }
+                else { title.innerText="Create Account"; btn.innerText="Create Account"; toggle.innerHTML=`Have account? <button onclick="authManager.toggleMode()" class="text-earth-green font-bold hover:underline ml-1">Login</button>`; }
             },
             handleAuth: async (e) => {
                 e.preventDefault();
                 const em = document.getElementById('email').value, pw = document.getElementById('password').value;
                 try {
-                    let cred;
-                    if(isLoginMode) cred = await signInWithEmailAndPassword(auth, em, pw);
-                    else cred = await createUserWithEmailAndPassword(auth, em, pw);
-                    
-                    // Init user doc if missing
-                    const userRef = doc(db, "users", cred.user.uid);
-                    const snap = await getDoc(userRef);
-                    if (!snap.exists()) {
-                        await setDoc(userRef, { email: em, plan: 'free', createdAt: new Date() });
-                    }
+                    if(isLoginMode) await signInWithEmailAndPassword(auth, em, pw);
+                    else await createUserWithEmailAndPassword(auth, em, pw);
                 } catch(err) { document.getElementById('auth-error').innerText=err.message.replace('Firebase: ',''); document.getElementById('auth-error').classList.remove('hidden'); }
             },
             logout: () => signOut(auth)
@@ -365,7 +527,10 @@
             handleImagePreview: (input) => {
                 if (input.files[0]) {
                     const reader = new FileReader();
-                    reader.onload = (e) => document.getElementById('evt-image-base64').value = e.target.result;
+                    reader.onload = (e) => {
+                        document.getElementById('evt-image-base64').value = e.target.result;
+                        document.getElementById('image-preview-container').innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover">`;
+                    };
                     reader.readAsDataURL(input.files[0]);
                 }
             },
@@ -392,6 +557,7 @@
                     alert("Published!");
                     document.getElementById('create-event-form').reset();
                     document.getElementById('tiers-container').innerHTML='';
+                    document.getElementById('image-preview-container').innerHTML='<span class="text-gray-400 text-xs">No image selected</span>';
                     tierManager.addTier('General Admission');
                     ui.showSection('overview');
                 } catch(err) { alert(err.message); }
@@ -420,15 +586,8 @@
             }
         };
         
-        window.analyticsManager = {
-             loadData: async () => { /* Simplified for brevity, same logic as before */ },
-             filterByEvent: () => { /* ... */ }
-        };
-
-        window.scannerManager = {
-             startScanner: () => { /* ... */ },
-             reset: () => { /* ... */ }
-        };
+        window.analyticsManager = { loadData: async () => {}, filterByEvent: () => {} };
+        window.scannerManager = { startScanner: () => {}, reset: () => {} };
 
         // --- INIT ---
         document.getElementById('auth-form').addEventListener('submit', authManager.handleAuth);
@@ -437,6 +596,9 @@
         onAuthStateChanged(auth, async (user) => {
             currentUser = user;
             if(user) {
+                await verifyOrganizerIdentity(user);
+                initAI(); // Initialize AI on login
+
                 document.getElementById('view-login').classList.add('hidden');
                 document.getElementById('view-dashboard').classList.remove('hidden');
                 document.getElementById('user-display').innerText = user.email;
