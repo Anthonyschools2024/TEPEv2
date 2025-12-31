@@ -117,8 +117,8 @@
             <!-- Sidebar Overlay (Mobile) -->
             <div id="sidebar-overlay" onclick="ui.toggleSidebar()" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden lg:hidden transition-opacity backdrop-blur-sm"></div>
             
-            <!-- SIDEBAR NAVIGATION -->
-            <aside id="sidebar" class="bg-earth-brown text-white w-72 flex flex-col py-6 px-4 space-y-2 absolute inset-y-0 left-0 transform -translate-x-full lg:relative lg:translate-x-0 transition duration-300 ease-in-out z-40 h-full shadow-2xl lg:shadow-none">
+            <!-- SIDEBAR NAVIGATION (UPDATED FOR SCROLL) -->
+            <aside id="sidebar" class="bg-earth-brown text-white w-72 flex flex-col py-6 px-4 space-y-2 fixed inset-y-0 left-0 transform -translate-x-full lg:relative lg:translate-x-0 transition duration-300 ease-in-out z-40 h-full shadow-2xl lg:shadow-none overflow-y-auto">
                 
                 <!-- Nav Links -->
                 <div class="flex-1 space-y-2">
@@ -143,7 +143,7 @@
                 </div>
 
                 <!-- Mobile Only User Info & Logout (Bottom of Sidebar) -->
-                <div class="lg:hidden pt-6 mt-auto border-t border-gray-800">
+                <div class="lg:hidden pt-6 mt-auto border-t border-gray-800 pb-20"> <!-- Added padding bottom for safe scroll -->
                     <div class="flex items-center space-x-3 mb-4 px-2">
                         <div class="w-10 h-10 rounded-full bg-earth-green text-white flex items-center justify-center font-bold" id="mobile-avatar">O</div>
                         <div class="flex-1 overflow-hidden">
@@ -211,11 +211,14 @@
                     </div>
                 </div>
 
-                <!-- SCANNER -->
+                <!-- SCANNER (FIXED) -->
                 <div id="section-scan" class="dash-section hidden animate-fade-in">
                     <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-6">Scanner</h2>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        <div class="bg-black rounded-2xl overflow-hidden relative h-72 sm:h-96 shadow-lg border-4 border-gray-800"><div id="reader" class="w-full h-full"></div></div>
+                        <div class="bg-black rounded-2xl overflow-hidden relative h-72 sm:h-96 shadow-lg border-4 border-gray-800">
+                            <!-- Container for the scanner -->
+                            <div id="reader" class="w-full h-full"></div>
+                        </div>
                         <div class="bg-white rounded-2xl shadow-lg p-8 flex flex-col justify-center text-center border border-gray-100">
                             <div id="scan-placeholder">
                                 <i class="ph ph-qr-code text-6xl mb-4 text-gray-300"></i>
@@ -225,6 +228,7 @@
                             <div id="scan-result" class="hidden">
                                 <h3 id="scan-status" class="text-2xl font-bold mb-2">Verifying...</h3>
                                 <div id="scan-details" class="bg-gray-50 p-4 rounded-xl border border-gray-100 mb-6"></div>
+                                <!-- Button now calls reset() which safely restarts the camera -->
                                 <button onclick="scannerManager.reset()" class="bg-gray-800 text-white px-8 py-3 rounded-full shadow hover:bg-black font-bold transition">Scan Next</button>
                             </div>
                         </div>
@@ -430,7 +434,7 @@
         let currentUser = null;
         let isLoginMode = true;
         let myEvents = [];
-        let html5QrCode = null;
+        let html5QrCode = null; // Global for scanner instance
         let userPlan = 'free';
         const MASTER_EMAIL = "akimble109@gamil.com";
 
@@ -662,26 +666,68 @@
             getTiers: () => Array.from(document.querySelectorAll('.tier-row')).map(r => ({name:r.querySelector('.tier-name').value, price:r.querySelector('.tier-price').value, capacity:r.querySelector('.tier-capacity').value})).filter(t=>t.name&&t.price)
         };
 
+        // --- SCANNER MANAGER (FIXED: CLEAR BEFORE RESTART) ---
         window.scannerManager = {
-             startScanner: () => {
-                 document.getElementById('scan-placeholder').classList.add('hidden');
-                 document.getElementById('reader').classList.remove('hidden');
-                 if(html5QrCode) { html5QrCode.stop().then(runScanner).catch(runScanner); } else { runScanner(); }
-                 function runScanner() {
+             startScanner: async () => {
+                 const readerEl = document.getElementById('reader');
+                 const placeholderEl = document.getElementById('scan-placeholder');
+                 const resultEl = document.getElementById('scan-result');
+
+                 // Update UI
+                 resultEl.classList.add('hidden');
+                 placeholderEl.classList.add('hidden');
+                 readerEl.classList.remove('hidden');
+
+                 // 1. CLEANUP PREVIOUS INSTANCE (Crucial step)
+                 if (html5QrCode) {
+                     try {
+                         await html5QrCode.stop();
+                         await html5QrCode.clear();
+                     } catch (e) { console.log("Cleanup catch:", e); }
+                     html5QrCode = null; 
+                 }
+
+                 // 2. NEW INSTANCE
+                 try {
                      html5QrCode = new Html5Qrcode("reader");
-                     html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } },
-                         async (decodedText) => { console.log(decodedText); await scannerManager.verifyTicket(decodedText); html5QrCode.stop(); },
-                         (errorMessage) => {}
-                     ).catch(err => { alert("Camera failed."); document.getElementById('scan-placeholder').classList.remove('hidden'); });
+                     await html5QrCode.start(
+                         { facingMode: "environment" }, 
+                         { fps: 10, qrbox: { width: 250, height: 250 } },
+                         async (decodedText) => {
+                             // SUCCESS
+                             console.log("Scanned:", decodedText);
+                             
+                             // Stop immediately
+                             try {
+                                 await html5QrCode.stop();
+                                 await html5QrCode.clear();
+                             } catch(e) { console.error(e); }
+                             html5QrCode = null; 
+
+                             // Verify
+                             await scannerManager.verifyTicket(decodedText);
+                         },
+                         (errorMessage) => { /* ignore frame errors */ }
+                     );
+                 } catch (err) {
+                     console.error("Camera start error:", err);
+                     alert("Camera failed to start. Please check permissions.");
+                     placeholderEl.classList.remove('hidden');
+                     readerEl.classList.add('hidden');
                  }
              },
              verifyTicket: async (ticketId) => {
                  const statusEl = document.getElementById('scan-status');
                  const resultEl = document.getElementById('scan-result');
                  const detailsEl = document.getElementById('scan-details');
-                 document.getElementById('reader').classList.add('hidden');
-                 resultEl.classList.remove('hidden');
+                 
+                 document.getElementById('reader').classList.add('hidden'); // Hide camera container
+                 resultEl.classList.remove('hidden'); // Show result container
+                 
                  statusEl.innerText = "Verifying...";
+                 statusEl.className = "text-2xl font-bold text-gray-600";
+                 detailsEl.innerHTML = '';
+
                  try {
                      const q = query(collection(db, "tickets"), where("customer", "==", ticketId));
                      const snap = await getDocs(q);
@@ -695,7 +741,11 @@
                      }
                  } catch (e) { statusEl.innerText = "ERROR"; detailsEl.innerText = e.message; }
              },
-             reset: () => { document.getElementById('scan-result').classList.add('hidden'); scannerManager.startScanner(); }
+             reset: () => {
+                 // User clicked "Scan Next"
+                 // Call startScanner again, which handles cleanup and restart
+                 scannerManager.startScanner();
+             }
         };
 
         window.ui = {
@@ -744,7 +794,7 @@
                     snap.forEach(d => {
                         const evt = d.data(); evt.id = d.id;
                         myEvents.push(evt);
-                        body.innerHTML += `<tr><td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${evt.title}</td><td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${evt.date}</td><td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"><button onclick="dataManager.deleteEvent('${evt.id}')" class="text-red-600 hover:text-red-900">Delete</button></td></tr>`;
+                        body.innerHTML += `<tr><td class="px-4 py-2">${evt.title}</td><td class="px-4 py-2">${evt.date}</td><td class="px-4 py-2"><button onclick="dataManager.deleteEvent('${evt.id}')" class="text-red-500">Delete</button></td></tr>`;
                     });
                     document.getElementById('stat-active-count').innerText = myEvents.length;
                 });
