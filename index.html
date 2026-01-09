@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>T.E.P.E. - Public Events</title>
-    <!-- Favicon -->
     <link rel="icon" type="image/png" href="tepelogo.png">
     
     <!-- Tailwind CSS -->
@@ -12,7 +11,7 @@
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-    <!-- Google Generative AI SDK (For the Brain) -->
+    <!-- Google Generative AI SDK -->
     <script type="importmap">
       {
         "imports": {
@@ -21,49 +20,15 @@
       }
     </script>
     
-    <!-- PayPal Error Trap (Must be before SDK) -->
-    <script>
-        window.paypalBootstrapError = false;
-        
-        // Define fallback immediately so the error handler can use it
-        window.forceFallbackUI = function() {
-            const container = document.getElementById('paypal-button-container');
-            if (container) {
-                if (container.querySelector('#fallback-pay-btn')) return;
-                console.warn("Forcing Fallback UI due to PayPal Error");
-                container.innerHTML = ''; 
-                if (window.selectedTier && window.fallbackPaymentUI) {
-                    window.fallbackPaymentUI(container);
-                }
-            }
-        };
-
-        window.addEventListener('error', function(e) {
-            // Catch specific iframe/host errors from PayPal SDK
-            if (e.message && (e.message.includes('paypal') || e.message.includes('window host') || e.message.includes('Bootstrap Error') || e.filename?.includes('paypal'))) {
-                console.warn("PayPal SDK Bootstrap Error detected. Switching to Test Mode.");
-                window.paypalBootstrapError = true;
-                window.forceFallbackUI();
-            }
-        });
-    </script>
-
-    <!-- PayPal SDK (LIVE MODE) -->
-    <script src="https://www.paypal.com/sdk/js?client-id=AbIM8PI16Q_0SuzeJ3s6tDNwhIYd-iH0PeSuIrbyi7ihtBCJ9etdGr0p0jukSDc26Oxlk08PvO0fUKk0&currency=USD&components=buttons&disable-funding=credit,paylater" onerror="window.paypalLoadError=true"></script>
+    <!-- PayPal SDK (Production Config) -->
+    <script src="https://www.paypal.com/sdk/js?client-id=AbIM8PI16Q_0SuzeJ3s6tDNwhIYd-iH0PeSuIrbyi7ihtBCJ9etdGr0p0jukSDc26Oxlk08PvO0fUKk0&currency=USD&components=buttons&disable-funding=credit,paylater" onerror="console.error('PayPal SDK Failed to Load')"></script>
     
-    <!-- Tailwind Config -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        earth: {
-                            brown: '#000000', // Black
-                            green: '#2563EB', // Electric Blue
-                            blue: '#60A5FA',  // Sky Blue
-                            sand: '#F1F5F9',  // Slate 100
-                            dark: '#0F172A'   // Slate 900
-                        }
+                        earth: { brown: '#000000', green: '#2563EB', blue: '#60A5FA', sand: '#F1F5F9', dark: '#0F172A' }
                     },
                     fontFamily: { sans: ['Segoe UI', 'Roboto', 'sans-serif'] }
                 }
@@ -74,110 +39,67 @@
         html { scroll-behavior: smooth; }
         .hero-gradient { background: linear-gradient(to bottom, rgba(37, 99, 235, 0.5), rgba(0, 0, 0, 0.8)); }
         .carousel-image { transition: opacity 2s ease-in-out; will-change: opacity; }
-        .calendar-day { min-height: 80px; }
-        .calendar-day:hover { background-color: #EFF6FF; }
-        
-        /* Custom Scrollbar for Modal */
         .custom-scroll::-webkit-scrollbar { width: 6px; }
         .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-        /* Chat Widget Animations */
-        @keyframes slideInUp {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
+        
+        @keyframes slideInUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .chat-animate { animation: slideInUp 0.3s ease-out forwards; }
-        .typing-dot {
-            animation: typing 1.4s infinite ease-in-out both;
-        }
+        .typing-dot { animation: typing 1.4s infinite ease-in-out both; }
         .typing-dot:nth-child(1) { animation-delay: -0.32s; }
         .typing-dot:nth-child(2) { animation-delay: -0.16s; }
-        @keyframes typing {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1); }
-        }
+        @keyframes typing { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
     </style>
 </head>
 <body class="bg-earth-sand text-earth-dark font-sans antialiased overflow-x-hidden">
-
-    <!-- DIAGNOSTIC BANNER -->
-    <div id="diagnostic-banner" class="bg-blue-600 text-white p-3 text-center text-sm font-bold hidden">
-        Initializing Firebase Connection...
-    </div>
 
     <!-- Navigation -->
     <nav class="bg-earth-brown text-white fixed w-full z-50 shadow-lg top-0">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-20">
-                <!-- Logo -->
                 <div class="flex items-center space-x-3 cursor-pointer" onclick="window.scrollTo(0,0)">
-                    <!-- REPLACED SVG WITH LOGO IMAGE + FALLBACK -->
-                    <img src="tepelogo.png" 
-                         alt="T.E.P.E." 
-                         class="h-10 w-10 rounded-full object-cover border-2 border-earth-green"
-                         onerror="this.onerror=null; this.src='https://placehold.co/40x40/2E7D32/FFFFFF?text=TEPE';">
+                    <img src="tepelogo.png" alt="T.E.P.E." class="h-10 w-10 rounded-full object-cover border-2 border-earth-green" onerror="this.onerror=null; this.src='https://placehold.co/40x40/2E7D32/FFFFFF?text=TEPE';">
                     <span class="font-bold text-2xl tracking-wider">T.E.P.E.</span>
                 </div>
                 
-                <!-- Desktop Menu -->
                 <div class="hidden md:flex items-center space-x-4">
                     <a href="#home" class="hover:bg-earth-green px-3 py-2 rounded-md text-sm font-medium transition">Home</a>
                     <a href="#events" class="hover:bg-earth-green px-3 py-2 rounded-md text-sm font-medium transition">Events</a>
                     <a href="#calendar" class="hover:bg-earth-green px-3 py-2 rounded-md text-sm font-medium transition">Calendar</a>
+                    <a href="organizer.html" target="_blank" class="border border-earth-green text-earth-green hover:bg-earth-green hover:text-white px-4 py-2 rounded-md text-sm font-bold transition ml-2">Become An Organizer</a>
+                    <button id="buyer-login-btn" onclick="toggleBuyerModal()" class="bg-earth-green hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-bold shadow-md transition ml-2">Fan Login</button>
                     
-                    <a href="organizer.html" target="_blank" class="border border-earth-green text-earth-green hover:bg-earth-green hover:text-white px-4 py-2 rounded-md text-sm font-bold transition ml-2">
-                        Become An Organizer
-                    </a>
-
-                    <button id="buyer-login-btn" onclick="toggleBuyerModal()" class="bg-earth-green hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-bold shadow-md transition ml-2">
-                        Fan Login
-                    </button>
-                    
-                    <!-- Buyer Profile & My Tickets -->
                     <div id="buyer-profile" class="hidden items-center space-x-3 ml-4 bg-gray-900 px-3 py-1 rounded-full border border-gray-700">
-                        <button onclick="document.getElementById('my-tickets-modal').classList.remove('hidden')" class="text-xs font-bold text-earth-green hover:text-white flex items-center">
-                            <i class="ph ph-ticket mr-1"></i> My Tickets
-                        </button>
+                        <button onclick="document.getElementById('my-tickets-modal').classList.remove('hidden')" class="text-xs font-bold text-earth-green hover:text-white flex items-center"><i class="ph ph-ticket mr-1"></i> My Tickets</button>
                         <span class="text-gray-600 text-xs">|</span>
-                        <span id="buyer-email-display" class="text-xs font-bold text-earth-blue">fan@email.com</span>
+                        <span id="buyer-email-display" class="text-xs font-bold text-earth-blue">...</span>
                         <button onclick="logoutBuyer()" class="text-gray-400 hover:text-white text-xs uppercase font-bold tracking-wide ml-2">Logout</button>
                     </div>
                 </div>
 
-                <!-- Mobile Menu Button -->
                 <div class="md:hidden flex items-center">
-                    <button onclick="document.getElementById('mobile-menu').classList.toggle('hidden')" class="text-white hover:text-earth-green focus:outline-none p-2">
-                        <i class="ph ph-list text-3xl"></i>
-                    </button>
+                    <button onclick="document.getElementById('mobile-menu').classList.toggle('hidden')" class="text-white hover:text-earth-green p-2"><i class="ph ph-list text-3xl"></i></button>
                 </div>
             </div>
         </div>
 
-        <!-- Mobile Menu (Hidden by default) -->
         <div id="mobile-menu" class="hidden md:hidden bg-earth-brown border-t border-gray-800 pb-4">
-            <a href="#home" onclick="document.getElementById('mobile-menu').classList.add('hidden')" class="block px-4 py-3 hover:bg-gray-800 border-b border-gray-800">Home</a>
-            <a href="#events" onclick="document.getElementById('mobile-menu').classList.add('hidden')" class="block px-4 py-3 hover:bg-gray-800 border-b border-gray-800">Events</a>
-            <a href="#calendar" onclick="document.getElementById('mobile-menu').classList.add('hidden')" class="block px-4 py-3 hover:bg-gray-800 border-b border-gray-800">Calendar</a>
+            <a href="#home" class="block px-4 py-3 hover:bg-gray-800 border-b border-gray-800">Home</a>
+            <a href="#events" class="block px-4 py-3 hover:bg-gray-800 border-b border-gray-800">Events</a>
+            <a href="#calendar" class="block px-4 py-3 hover:bg-gray-800 border-b border-gray-800">Calendar</a>
             <a href="organizer.html" target="_blank" class="block px-4 py-3 text-earth-green font-bold hover:bg-gray-800 border-b border-gray-800">Become An Organizer</a>
-            
-            <!-- Mobile Auth -->
             <div class="px-4 py-4">
-                <button id="mobile-buyer-login-btn" onclick="toggleBuyerModal(); document.getElementById('mobile-menu').classList.add('hidden')" class="w-full bg-earth-green hover:bg-blue-700 text-white px-4 py-3 rounded-md text-sm font-bold shadow-md transition text-center">
-                    Fan Login
-                </button>
-                
+                <button id="mobile-buyer-login-btn" onclick="toggleBuyerModal()" class="w-full bg-earth-green hover:bg-blue-700 text-white px-4 py-3 rounded-md text-sm font-bold shadow-md transition text-center">Fan Login</button>
                 <div id="mobile-buyer-profile" class="hidden flex-col space-y-2">
                     <div class="text-sm text-gray-400">Logged in as: <span id="mobile-buyer-email-display" class="text-earth-blue font-bold"></span></div>
-                    <button onclick="document.getElementById('my-tickets-modal').classList.remove('hidden'); document.getElementById('mobile-menu').classList.add('hidden')" class="w-full bg-gray-800 text-white px-4 py-2 rounded text-sm transition">My Tickets</button>
-                    <button onclick="logoutBuyer(); document.getElementById('mobile-menu').classList.add('hidden')" class="w-full border border-gray-600 text-gray-300 hover:text-white hover:border-white px-4 py-2 rounded text-sm transition">Logout</button>
+                    <button onclick="document.getElementById('my-tickets-modal').classList.remove('hidden')" class="w-full bg-gray-800 text-white px-4 py-2 rounded text-sm transition">My Tickets</button>
+                    <button onclick="logoutBuyer()" class="w-full border border-gray-600 text-gray-300 hover:text-white hover:border-white px-4 py-2 rounded text-sm transition">Logout</button>
                 </div>
             </div>
         </div>
     </nav>
 
-    <!-- Hero Section -->
+    <!-- Hero -->
     <section id="home" class="relative h-screen flex items-center justify-center text-center px-4 overflow-hidden bg-black mt-0">
         <div id="hero-carousel" class="absolute inset-0 z-0"></div>
         <div class="absolute inset-0 z-10 hero-gradient"></div>
@@ -195,23 +117,16 @@
                 <h2 class="text-3xl font-bold text-earth-brown uppercase tracking-wide">Upcoming Experiences</h2>
                 <div class="w-24 h-1 bg-earth-green mx-auto mt-4"></div>
             </div>
-            <!-- Dynamic Grid Container -->
             <div id="public-events-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
                 <div class="col-span-full text-center py-10">
                     <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-earth-green"></div>
                     <p class="mt-2 text-gray-500">Loading events...</p>
                 </div>
             </div>
-            <!-- Error Container (Hidden by default) -->
-            <div id="error-container" class="hidden text-center py-10 bg-red-50 p-6 rounded-lg border border-red-200">
-                <i class="ph ph-warning-circle text-4xl text-red-500 mb-2"></i>
-                <p id="error-title" class="text-red-600 font-bold text-lg">Connection Issue</p>
-                <p id="error-desc" class="text-sm text-gray-600 mt-2">Please check your Firebase Console.</p>
-            </div>
         </div>
     </section>
 
-    <!-- Calendar Section -->
+    <!-- Calendar -->
     <section id="calendar" class="py-20 bg-earth-sand">
         <div class="max-w-6xl mx-auto px-4">
             <div class="text-center mb-10"><h2 class="text-3xl font-bold text-earth-brown">Event Calendar</h2></div>
@@ -230,70 +145,43 @@
                     <div class="py-3 text-center text-sm font-bold text-gray-500">FRI</div>
                     <div class="py-3 text-center text-sm font-bold text-gray-500">SAT</div>
                 </div>
-                <!-- Dynamic Calendar Grid -->
                 <div id="calendar-grid" class="grid grid-cols-7 bg-white"></div>
             </div>
         </div>
     </section>
 
-    <!-- Footer -->
     <footer class="bg-earth-brown text-gray-400 py-8 text-center text-sm">
         <p>&copy; 2025 Ticket Evolution Public Events. All Rights Reserved.</p>
     </footer>
 
-    <!-- ================= AI ASSISTANT WIDGET ================= -->
+    <!-- AI Widget -->
     <div id="ai-widget-container" class="fixed bottom-6 right-6 z-50 flex flex-col items-end">
-        
-        <!-- Chat Window -->
-        <div id="ai-chat-window" class="hidden mb-4 bg-white w-80 md:w-96 rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden chat-animate origin-bottom-right transition-all duration-300" style="height: 500px;">
-            <!-- Header -->
+        <div id="ai-chat-window" class="hidden mb-4 bg-white w-80 md:w-96 rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden chat-animate h-[500px]">
             <div class="bg-earth-brown text-white p-4 flex justify-between items-center">
                 <div class="flex items-center space-x-2">
                     <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                    <div>
-                        <h3 class="font-bold text-sm">TEPE Assistant</h3>
-                        <p class="text-xs text-gray-400">Powered by Gemini AI <span id="ai-status"></span></p>
-                    </div>
+                    <div><h3 class="font-bold text-sm">TEPE Assistant</h3></div>
                 </div>
                 <button onclick="toggleAIChat()" class="text-gray-400 hover:text-white"><i class="ph ph-x"></i></button>
             </div>
-            
-            <!-- Messages Area -->
             <div id="ai-messages" class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50 custom-scroll">
-                <!-- Welcome Message -->
-                <div class="flex items-start">
-                    <div class="bg-earth-green text-white p-2 rounded-lg rounded-tl-none text-sm max-w-[85%] shadow-sm">
-                        👋 Hi! I'm your T.E.P.E. concierge. Ask me anything about our upcoming events, ticket prices, or how to get started!
-                    </div>
-                </div>
+                <div class="flex items-start"><div class="bg-earth-green text-white p-2 rounded-lg rounded-tl-none text-sm max-w-[85%] shadow-sm">👋 Hi! Need tickets or event info?</div></div>
             </div>
-
-            <!-- Input Area -->
             <div class="p-3 bg-white border-t border-gray-200 flex items-center space-x-2">
                 <input type="text" id="ai-input" placeholder="Ask about events..." class="flex-1 bg-gray-100 border-0 rounded-full px-4 py-2 text-sm focus:ring-2 focus:ring-earth-green outline-none" onkeypress="if(event.key === 'Enter') sendAIMessage()">
-                <button onclick="sendAIMessage()" class="bg-earth-green text-white p-2 rounded-full hover:bg-blue-600 transition shadow-md">
-                    <i class="ph ph-paper-plane-right text-lg"></i>
-                </button>
+                <button onclick="sendAIMessage()" class="bg-earth-green text-white p-2 rounded-full hover:bg-blue-600 transition shadow-md"><i class="ph ph-paper-plane-right text-lg"></i></button>
             </div>
         </div>
-
-        <!-- Floating Button -->
-        <button onclick="toggleAIChat()" id="ai-toggle-btn" class="bg-earth-green hover:bg-blue-600 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition transform hover:scale-110 group">
-            <i class="ph ph-sparkle text-3xl group-hover:hidden"></i>
-            <i class="ph ph-caret-down text-3xl hidden group-hover:block"></i>
-            <!-- Notification Dot -->
-            <span class="absolute top-0 right-0 w-4 h-4 bg-red-500 rounded-full border-2 border-white animate-bounce"></span>
+        <button onclick="toggleAIChat()" class="bg-earth-green hover:bg-blue-600 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition transform hover:scale-110">
+            <i class="ph ph-sparkle text-3xl"></i>
         </button>
     </div>
 
-    <!-- ================= MODALS ================= -->
-
-    <!-- Checkout / Ticketing Modal -->
+    <!-- CHECKOUT MODAL -->
     <div id="checkout-modal" class="hidden fixed inset-0 bg-black bg-opacity-90 z-[80] flex items-center justify-center backdrop-blur-md overflow-y-auto">
         <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl relative flex flex-col md:flex-row overflow-hidden m-4 max-h-[90vh]">
             <button onclick="closeCheckout()" class="absolute top-4 right-4 z-50 bg-white rounded-full p-1 text-gray-500 hover:text-red-500 shadow-md"><i class="ph ph-x text-xl"></i></button>
             
-            <!-- Left: Event Summary & Totals -->
             <div class="w-full md:w-5/12 bg-earth-sand border-r border-gray-200 flex flex-col relative">
                 <div class="h-40 w-full relative">
                     <img id="checkout-img" src="" class="w-full h-full object-cover">
@@ -305,114 +193,91 @@
                 </div>
                 <div class="p-6 flex-1 flex flex-col">
                     <div class="flex items-start space-x-3 text-sm text-gray-600 mb-2">
-                        <i class="ph ph-map-pin text-lg text-earth-green"></i>
-                        <span id="checkout-location">Location</span>
+                        <i class="ph ph-map-pin text-lg text-earth-green"></i><span id="checkout-location">Location</span>
                     </div>
                     <div class="flex items-start space-x-3 text-sm text-gray-600 mb-4">
-                        <i class="ph ph-clock text-lg text-earth-green"></i>
-                        <span id="checkout-time">Time</span>
+                        <i class="ph ph-clock text-lg text-earth-green"></i><span id="checkout-time">Time</span>
                     </div>
-                    
                     <div class="mt-auto space-y-2 text-sm text-gray-600 border-t pt-4 border-gray-300">
-                        <div class="flex justify-between">
-                            <span>Subtotal</span>
-                            <span id="summ-subtotal">$0.00</span>
-                        </div>
-                        <div class="flex justify-between text-earth-green hidden" id="summ-discount-row">
-                            <span>Discount</span>
-                            <span id="summ-discount">-$0.00</span>
-                        </div>
-                        <div class="flex justify-between hidden" id="summ-tax-row">
-                            <span>Tax <span id="summ-tax-rate" class="text-xs"></span></span>
-                            <span id="summ-tax">$0.00</span>
-                        </div>
-                        <div class="flex justify-between items-center font-bold text-gray-800 text-lg pt-2 border-t border-gray-200 mt-2">
-                            <span>Total</span>
-                            <span id="checkout-total-display" class="text-xl text-earth-green">$0.00</span>
-                        </div>
+                        <div class="flex justify-between"><span>Subtotal</span><span id="summ-subtotal">$0.00</span></div>
+                        <div class="flex justify-between text-earth-green hidden" id="summ-discount-row"><span>Discount</span><span id="summ-discount">-$0.00</span></div>
+                        <div class="flex justify-between hidden" id="summ-tax-row"><span>Tax <span id="summ-tax-rate" class="text-xs"></span></span><span id="summ-tax">$0.00</span></div>
+                        <div class="flex justify-between items-center font-bold text-gray-800 text-lg pt-2 border-t border-gray-200 mt-2"><span>Total</span><span id="checkout-total-display" class="text-xl text-earth-green">$0.00</span></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Right: Selection & Payment -->
-            <div class="w-full md:w-7/12 bg-white p-6 md:p-8 flex flex-col custom-scroll overflow-y-auto">
-                <h2 class="text-2xl font-bold text-earth-brown mb-2">Select Tickets</h2>
-                <p class="text-xs text-gray-500 mb-6">Secure checkout powered by PayPal</p>
+            <div class="w-full md:w-7/12 bg-white p-6 md:p-8 flex flex-col custom-scroll overflow-y-auto relative">
+                <!-- PROCESSING OVERLAY (Prevents Double Payment) -->
+                <div id="processing-overlay" class="hidden absolute inset-0 bg-white/95 z-50 flex flex-col items-center justify-center text-center">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-earth-green mb-4"></div>
+                    <h3 class="text-lg font-bold text-earth-brown">Processing Transaction...</h3>
+                    <p class="text-sm text-gray-500">Please verify in the PayPal window.</p>
+                </div>
 
-                <!-- Ticket Tiers Container -->
+                <h2 class="text-2xl font-bold text-earth-brown mb-2">Select Tickets</h2>
                 <div id="ticket-tiers-container" class="space-y-3 mb-4"></div>
 
-                <!-- Quantity & Promo -->
                 <div class="space-y-4 mb-6">
-                     <!-- Quantity -->
                     <div class="flex items-center justify-between bg-gray-50 p-3 rounded-lg border border-gray-200">
                         <span class="text-sm font-bold text-gray-700">Quantity</span>
                         <div class="flex items-center space-x-4">
-                            <button onclick="window.changeQty(-1)" class="w-8 h-8 rounded-full bg-white border border-gray-300 hover:bg-gray-100 flex items-center justify-center font-bold text-gray-600 transition">-</button>
+                            <button onclick="window.changeQty(-1)" class="w-8 h-8 rounded-full bg-white border border-gray-300 font-bold hover:bg-gray-100">-</button>
                             <span id="qty-display" class="font-bold text-lg w-6 text-center text-earth-brown">1</span>
-                            <button onclick="window.changeQty(1)" class="w-8 h-8 rounded-full bg-white border border-gray-300 hover:bg-gray-100 flex items-center justify-center font-bold text-gray-600 transition">+</button>
+                            <button onclick="window.changeQty(1)" class="w-8 h-8 rounded-full bg-white border border-gray-300 font-bold hover:bg-gray-100">+</button>
                         </div>
                     </div>
-
-                    <!-- Promo Code (Hidden if no code) -->
                     <div id="promo-section" class="hidden">
                         <div class="flex gap-2">
-                            <input type="text" id="promo-input" placeholder="Promo Code" class="flex-1 border border-gray-300 rounded p-2 text-sm uppercase outline-none focus:border-earth-green">
+                            <input type="text" id="promo-input" placeholder="Promo Code" class="flex-1 border border-gray-300 rounded p-2 text-sm uppercase focus:border-earth-green outline-none">
                             <button onclick="window.applyPromoCode()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded text-sm font-bold transition">Apply</button>
                         </div>
                         <p id="promo-message" class="text-xs mt-1 h-4"></p>
                     </div>
                 </div>
 
-                <!-- Paypal Container -->
+                <!-- ERROR MESSAGE -->
+                <div id="checkout-error" class="hidden bg-red-50 border border-red-200 text-red-600 text-xs p-3 rounded mb-4 text-center font-bold"></div>
+
                 <div id="paypal-button-container" class="mt-auto pt-4 border-t border-gray-100 min-h-[150px]"></div>
                 
-                <!-- SUCCESS SCREEN -->
-                <div id="payment-success" class="hidden flex-col items-center justify-center text-center p-4 bg-green-50 rounded-lg animate-fade-in w-full">
-                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                        <i class="ph ph-check-circle text-4xl text-green-600"></i>
-                    </div>
-                    <h3 class="text-2xl font-bold text-green-800 mb-2">Payment Successful!</h3>
-                    <p class="text-gray-600 mb-6 text-sm">Confirmation sent to <span id="success-email" class="font-bold text-earth-brown"></span></p>
-                    
-                    <!-- SCROLLABLE TICKET LIST -->
+                <div id="payment-success" class="hidden flex-col items-center justify-center text-center p-4 bg-green-50 rounded-lg w-full">
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4"><i class="ph ph-check-circle text-4xl text-green-600"></i></div>
+                    <h3 class="text-2xl font-bold text-green-800 mb-2">Success!</h3>
+                    <p class="text-gray-600 mb-6 text-sm">Sent to <span id="success-email" class="font-bold"></span></p>
                     <div id="generated-tickets-container" class="w-full max-h-96 overflow-y-auto space-y-4 p-2"></div>
-                    
                     <button onclick="closeCheckout()" class="mt-6 text-sm text-gray-500 hover:text-gray-800 underline">Close</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Other Modals -->
+    <!-- My Tickets Modal -->
     <div id="my-tickets-modal" class="hidden fixed inset-0 bg-black bg-opacity-90 z-[90] flex items-center justify-center backdrop-blur-sm">
         <div class="bg-white w-full max-w-2xl rounded-xl shadow-2xl p-6 relative max-h-[85vh] overflow-y-auto m-4">
             <button onclick="document.getElementById('my-tickets-modal').classList.add('hidden')" class="absolute top-4 right-4 text-gray-400 hover:text-red-500"><i class="ph ph-x text-xl"></i></button>
             <h2 class="text-2xl font-bold text-earth-brown mb-6 flex items-center"><i class="ph ph-ticket mr-2 text-earth-green"></i> My Ticket Wallet</h2>
-            <div id="my-tickets-list" class="space-y-4"><div class="text-center text-gray-500 py-10">Loading tickets...</div></div>
+            <div id="my-tickets-list" class="space-y-4"><div class="text-center text-gray-500 py-10">Loading...</div></div>
         </div>
     </div>
 
+    <!-- Login Modal -->
     <div id="buyer-modal" class="hidden fixed inset-0 bg-black bg-opacity-80 z-[60] flex items-center justify-center backdrop-blur-sm">
         <div class="bg-white p-8 rounded-lg max-w-sm w-full relative shadow-2xl">
             <button onclick="toggleBuyerModal()" class="absolute top-2 right-2 text-gray-400 hover:text-red-500"><i class="ph ph-x text-xl"></i></button>
-            <div class="text-center mb-6">
-                <h2 id="buyer-auth-title" class="text-xl font-bold text-gray-800">Fan Login</h2>
-                <p class="text-xs text-gray-500">Access your tickets</p>
-            </div>
+            <div class="text-center mb-6"><h2 id="buyer-auth-title" class="text-xl font-bold text-gray-800">Fan Login</h2></div>
             <form id="buyer-auth-form" class="space-y-4">
-                <input type="email" id="buyer-email" placeholder="Email" required class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-earth-green outline-none">
-                <input type="password" id="buyer-password" placeholder="Password" required class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-earth-green outline-none">
-                <p id="buyer-error" class="text-red-500 text-xs hidden"></p>
-                <button type="submit" id="buyer-submit-btn" class="w-full bg-earth-green hover:bg-blue-700 text-white py-2 rounded font-bold transition">Sign In</button>
+                <input type="email" id="buyer-email" placeholder="Email" required class="w-full border p-2 rounded outline-none focus:border-earth-green">
+                <input type="password" id="buyer-password" placeholder="Password" required class="w-full border p-2 rounded outline-none focus:border-earth-green">
+                <button type="submit" id="buyer-submit-btn" class="w-full bg-earth-green hover:bg-blue-700 text-white py-2 rounded font-bold">Sign In</button>
             </form>
             <div class="mt-4 text-center text-xs text-gray-500 border-t pt-4">
-                <span id="buyer-toggle-text">Don't have an account?</span> 
                 <button onclick="toggleBuyerAuthMode()" id="buyer-toggle-link" class="text-earth-green font-bold hover:underline">Join the Tribe</button>
             </div>
         </div>
     </div>
 
+    <!-- Event Detail Modal (Used by Calendar) -->
     <div id="event-modal" class="hidden fixed inset-0 bg-black bg-opacity-80 z-[70] flex items-center justify-center backdrop-blur-sm">
         <div class="bg-white p-6 rounded-lg max-w-md w-full relative shadow-2xl m-4">
             <button onclick="document.getElementById('event-modal').classList.add('hidden')" class="absolute top-2 right-2 text-gray-400 hover:text-red-500"><i class="ph ph-x text-xl"></i></button>
@@ -421,602 +286,68 @@
         </div>
     </div>
 
-    <!-- Logic -->
+    <!-- Firebase & Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, query, orderBy, doc, getDoc, addDoc, setDoc, updateDoc, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        // Google Generative AI
+        import { getFirestore, collection, onSnapshot, query, orderBy, doc, getDoc, addDoc, setDoc, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { GoogleGenerativeAI } from "@google/generative-ai";
 
-        // FIREBASE TEPE-V2
-        const firebaseConfig = {
-            apiKey: "AIzaSyClJ0s2rXDFAMRJAQdjIlO7GsmH4mR1Vcs",
-            authDomain: "tepe-v2.firebaseapp.com",
-            projectId: "tepe-v2",
-            storageBucket: "tepe-v2.firebasestorage.app",
-            messagingSenderId: "830338278786",
-            appId: "1:830338278786:web:98a7eabb282b6518d09b9b",
-            measurementId: "G-P4L207DXG6"
-        };
-
+        const firebaseConfig = { apiKey: "AIzaSyClJ0s2rXDFAMRJAQdjIlO7GsmH4mR1Vcs", authDomain: "tepe-v2.firebaseapp.com", projectId: "tepe-v2", storageBucket: "tepe-v2.firebasestorage.app", messagingSenderId: "830338278786", appId: "1:830338278786:web:98a7eabb282b6518d09b9b", measurementId: "G-P4L207DXG6" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // GLOBALS
+        // --- GLOBAL STATE ---
         let allEvents = [];
         let calendarDate = new Date();
         window.currentCheckoutEvent = null;
         window.selectedTier = null;
         window.selectedQty = 1;
         window.calculatedTotal = 0;
-        window.appliedPromo = null; // Store {code, discount}
         let currentUser = null;
+        const GEMINI_API_KEY = "AIzaSyAfhAJCGy_ZvoqQtlTxqlZCfkldtcNgdCU"; 
 
-        // --- AI CONFIGURATION (AUTO-DETECT) ---
-        // We use the new key you provided that works.
-        const GEMINI_API_KEY = "AIzaSyAUREfj27POAazb7BAyKIboPOmOyOjZXm4"; 
-        let currentAIModelName = "gemini-pro"; // Fallback default
-
-        window.addEventListener('error', function(e) {
-            if (e.message && (e.message.includes('paypal') || e.message.includes('window host'))) {
-                console.warn("Caught PayPal Bootstrap Error");
-                const container = document.getElementById('paypal-button-container');
-                if (container && container.innerHTML === '') {
-                    window.fallbackPaymentUI(container);
-                }
-            }
-        });
-
-        // --- IDENTITY ROUTINE ---
-        async function verifyAccountIdentity(user) {
-            if (user.email === "akimble109@gamil.com") return;
-            const userRef = doc(db, "users", user.uid);
-            try {
-                const snap = await getDoc(userRef);
-                if (snap.exists()) {
-                    const data = snap.data();
-                    if (!data.roles || !data.roles.includes('attendee') || !data.attendee_profile) {
-                        const roles = data.roles || [];
-                        if(!roles.includes('attendee')) roles.push('attendee');
-                        await setDoc(userRef, { roles: roles, attendee_profile: { joined_at: new Date(), email: user.email, status: 'active' } }, { merge: true });
-                    }
-                } else {
-                    await setDoc(userRef, { email: user.email, roles: ['attendee'], attendee_profile: { joined_at: new Date(), email: user.email, status: 'active' }, isOrganizer: false });
-                }
-            } catch (e) { console.error("Identity Routine Failed:", e); }
-        }
-
-        // --- PUBLIC DATA ---
+        // --- EVENTS LISTENER ---
         function initRealtimeListener() {
             const grid = document.getElementById('public-events-grid');
-            const banner = document.getElementById('diagnostic-banner');
-            banner.classList.remove('hidden');
-            
             const q = query(collection(db, "events"), orderBy("date", "asc"));
             onSnapshot(q, (snapshot) => {
                 grid.innerHTML = ''; 
-                document.getElementById('error-container').classList.add('hidden');
-                banner.className = "bg-green-600 text-white p-2 text-center text-xs hidden"; 
                 allEvents = [];
-
-                if(snapshot.empty) { 
-                    grid.innerHTML = `<div class="col-span-full text-center py-10"><p class="text-gray-500">No upcoming events found.</p></div>`; 
-                    renderCalendar(); return; 
-                }
+                if(snapshot.empty) { grid.innerHTML = `<div class="col-span-full text-center py-10">No upcoming events.</div>`; renderCalendar(); return; }
 
                 snapshot.forEach(docSnap => {
-                    const evt = docSnap.data();
-                    evt.id = docSnap.id; 
-                    allEvents.push(evt);
-
+                    const evt = docSnap.data(); evt.id = docSnap.id; allEvents.push(evt);
                     const d = new Date(evt.date);
-                    const month = d.toLocaleDateString('en-US', {month:'short'}).toUpperCase();
-                    const day = d.getDate();
-                    const safeImage = evt.image || 'https://images.unsplash.com/photo-1514525253440-b393452e8d26?auto=format&fit=crop&w=800&q=60';
-
+                    const safeImage = evt.image || 'https://via.placeholder.com/800';
                     let priceDisplay = "Check Details";
-                    if(evt.tiers && evt.tiers.length > 0) {
-                        const minPrice = Math.min(...evt.tiers.map(t => parseFloat(t.price)));
-                        priceDisplay = `From $${minPrice}`;
+                    if(evt.tiers && evt.tiers.length) {
+                        const min = Math.min(...evt.tiers.map(t => parseFloat(t.price)));
+                        priceDisplay = `From $${min}`;
                     }
 
+                    // --- GENERATING CARD WITH BUTTON ---
                     grid.innerHTML += `
-                        <div class="bg-slate-50 rounded-xl overflow-hidden shadow-lg border border-slate-200 flex flex-col h-full hover:shadow-2xl transition group">
-                            <div class="h-48 bg-gray-300 relative overflow-hidden">
-                                <img src="${safeImage}" class="w-full h-full object-cover transition duration-500 group-hover:scale-110" onerror="this.src='https://via.placeholder.com/800x600?text=Event'">
-                                <div class="absolute top-0 right-0 bg-earth-green text-white px-3 py-1 m-2 rounded text-xs font-bold shadow-md">${month} ${day}</div>
+                        <div class="bg-white rounded-xl overflow-hidden shadow-lg border border-slate-100 flex flex-col h-full hover:shadow-2xl transition group">
+                            <div class="h-48 bg-gray-200 relative overflow-hidden">
+                                <img src="${safeImage}" class="w-full h-full object-cover transition duration-500 group-hover:scale-110">
+                                <div class="absolute top-2 right-2 bg-earth-green text-white px-3 py-1 rounded text-xs font-bold shadow">${d.toLocaleDateString()}</div>
                             </div>
                             <div class="p-6 flex flex-col flex-1">
                                 <h3 class="text-xl font-bold text-earth-brown mb-1">${evt.title}</h3>
-                                <p class="text-sm text-earth-green font-semibold mb-2 flex items-center"><i class="ph ph-map-pin mr-1"></i>${evt.location}</p>
+                                <p class="text-sm text-earth-green font-semibold mb-2"><i class="ph ph-map-pin mr-1"></i>${evt.location}</p>
                                 <p class="text-xs text-gray-500 mb-3"><i class="ph ph-tag mr-1"></i>${priceDisplay}</p>
-                                <p class="text-gray-600 text-sm mb-4 flex-1 line-clamp-3">${evt.description}</p>
-                                <button onclick="window.initCheckout('${evt.id}')" class="w-full bg-black text-white py-2 rounded hover:bg-gray-800 mt-auto shadow font-bold tracking-wide">Get Tickets</button>
+                                <p class="text-gray-600 text-sm mb-4 line-clamp-2">${evt.description}</p>
+                                <button onclick="window.initCheckout('${evt.id}')" class="w-full bg-black hover:bg-gray-800 text-white py-3 rounded-lg font-bold shadow transition mt-auto block">Get Tickets</button>
                             </div>
                         </div>`;
                 });
-                renderCalendar();
-            }, (err) => {
-                console.error(err);
-                banner.innerText = "Error: " + err.message;
-                banner.className = "bg-red-600 text-white p-3 text-center text-sm font-bold block";
+                renderCalendar(); // FIXED: Force calendar update when events load
             });
         }
 
-        // --- AI ASSISTANT LOGIC (UPDATED WITH AUTO-DETECT) ---
-        
-        // 1. Initialize and Detect Models immediately
-        async function initAI() {
-            try {
-                // Auto-detect which model your key supports
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_API_KEY}`);
-                const data = await response.json();
-                
-                if (data.models) {
-                    const validModels = data.models.filter(m => m.supportedGenerationMethods?.includes("generateContent"));
-                    if (validModels.length > 0) {
-                        currentAIModelName = validModels[0].name.replace('models/', '');
-                        console.log("AI Model Auto-Selected:", currentAIModelName);
-                        // Optional: visual indicator
-                        const statusEl = document.getElementById('ai-status');
-                        if (statusEl) statusEl.innerHTML = `<span class="text-green-400 text-xs">(${currentAIModelName})</span>`;
-                    }
-                }
-            } catch (e) {
-                console.warn("AI Auto-detection failed, using default:", currentAIModelName);
-            }
-        }
-        initAI(); // Run immediately
-
-        window.toggleAIChat = () => {
-            const win = document.getElementById('ai-chat-window');
-            win.classList.toggle('hidden');
-            if (!win.classList.contains('hidden')) document.getElementById('ai-input').focus();
-        };
-
-        window.sendAIMessage = async () => {
-            const input = document.getElementById('ai-input');
-            const msg = input.value.trim();
-            if (!msg) return;
-
-            // User UI
-            appendChatMessage(msg, 'user');
-            input.value = '';
-
-            // AI UI (Thinking)
-            const thinkingId = appendThinkingBubble();
-            const scrollArea = document.getElementById('ai-messages');
-            scrollArea.scrollTop = scrollArea.scrollHeight;
-
-            // Generate Response
-            const response = await generateSmartResponse(msg);
-            
-            // Replace thinking with response
-            document.getElementById(thinkingId).remove();
-            appendChatMessage(response, 'ai');
-        };
-
-        function appendChatMessage(text, sender) {
-            const container = document.getElementById('ai-messages');
-            const div = document.createElement('div');
-            div.className = "flex items-start " + (sender === 'user' ? 'justify-end' : '');
-            
-            const bubble = document.createElement('div');
-            bubble.className = "p-2 rounded-lg text-sm max-w-[85%] shadow-sm " + 
-                (sender === 'user' ? 'bg-blue-100 text-blue-900 rounded-tr-none' : 'bg-earth-green text-white rounded-tl-none');
-            
-            // Basic markdown-like formatting for bolding
-            let formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
-            bubble.innerHTML = formattedText;
-            
-            div.appendChild(bubble);
-            container.appendChild(div);
-            container.scrollTop = container.scrollHeight;
-        }
-
-        function appendThinkingBubble() {
-            const id = 'thinking-' + Date.now();
-            const container = document.getElementById('ai-messages');
-            const div = document.createElement('div');
-            div.id = id;
-            div.className = "flex items-start";
-            div.innerHTML = `
-                <div class="bg-gray-200 p-3 rounded-lg rounded-tl-none max-w-[50px] flex space-x-1 items-center">
-                    <div class="w-2 h-2 bg-gray-500 rounded-full typing-dot"></div>
-                    <div class="w-2 h-2 bg-gray-500 rounded-full typing-dot"></div>
-                    <div class="w-2 h-2 bg-gray-500 rounded-full typing-dot"></div>
-                </div>`;
-            container.appendChild(div);
-            return id;
-        }
-
-        async function generateSmartResponse(query) {
-            const q = query.toLowerCase();
-
-            // 1. SMART KEYWORD MATCHING (Instant Response Layer)
-            if (q.includes('buy ticket') || q.includes('get ticket')) {
-                return "You can buy tickets by clicking the 'Get Tickets' button on any event card. I accept PayPal!";
-            }
-            if (q.includes('organizer') || q.includes('host event')) {
-                return "Want to host an event? Click 'Become An Organizer' in the menu to access the Organizer Portal!";
-            }
-            if (q.includes('login') && q.includes('fan')) {
-                return "You can log in using the 'Fan Login' button at the top right to access your purchased tickets.";
-            }
-            
-            // 2. GENERATIVE AI (Using the auto-detected model)
-            if (GEMINI_API_KEY) {
-                try {
-                    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-                    // Use the model variable set by initAI()
-                    const model = genAI.getGenerativeModel({ model: currentAIModelName });
-                    
-                    // Inject context about the app, including LOCATION and TIME
-                    const context = `
-                        SYSTEM PROMPT:
-                        You are T.E.P.E. Assistant, a helpful, enthusiastic, and concise digital concierge for Ticket Evolution Public Events.
-                        
-                        CONTEXT:
-                        - Current Location: Tulsa, Oklahoma, United States
-                        - Current Time: ${new Date().toLocaleString()}
-                        
-                        YOUR KNOWLEDGE BASE (LIVE DATA):
-                        ${JSON.stringify(allEvents.map(e => ({
-                            title: e.title, 
-                            date: e.date, 
-                            time: e.time,
-                            location: e.location,
-                            description: e.description,
-                            price_start: e.tiers && e.tiers.length > 0 ? e.tiers[0].price : 'N/A'
-                        })))}
-                        
-                        USER QUESTION: "${query}"
-                        
-                        INSTRUCTIONS:
-                        1. Answer based strictly on the KNOWLEDGE BASE provided above.
-                        2. If asked about "time" or "location", use the CONTEXT provided.
-                        3. If the user asks about an event not in the list, politely say you don't see it on the schedule.
-                        4. Be concise (under 50 words). 
-                        5. Use an emoji or two.
-                        6. If asked about refunds, say "Tickets are non-refundable unless the event is canceled."
-                    `;
-                    
-                    const result = await model.generateContent(context);
-                    return result.response.text();
-                } catch (e) {
-                    console.error("Gemini Error:", e);
-                    let errMsg = "I'm having a little trouble connecting to the network.";
-                    if (e.message.includes('404')) errMsg += " (Model not found, trying auto-detect...)";
-                    return errMsg + " Try asking about 'upcoming events'.";
-                }
-            }
-
-            return "I can help you find events, check ticket details, or navigate the site. Try asking about 'tickets' or 'upcoming events'!";
-        }
-
-        // --- MY TICKETS ---
-        function loadMyTickets() {
-            if(!currentUser) return;
-            const container = document.getElementById('my-tickets-list');
-            const q = query(collection(db, 'tickets'), where('userId', '==', currentUser.uid));
-            
-            onSnapshot(q, (snapshot) => {
-                container.innerHTML = '';
-                if(snapshot.empty) {
-                    container.innerHTML = `<div class="text-center text-gray-500 py-10">You haven't purchased any tickets yet.</div>`;
-                    return;
-                }
-                snapshot.forEach(docSnap => {
-                    const t = docSnap.data();
-                    const qrData = encodeURIComponent(t.customer);
-                    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${qrData}`;
-                    container.innerHTML += `
-                        <div class="flex flex-col md:flex-row bg-gray-50 border border-gray-200 rounded-lg overflow-hidden shadow-sm">
-                            <div class="bg-earth-brown text-white p-4 flex flex-col justify-center items-center md:w-32">
-                                <img src="${qrUrl}" class="w-20 h-20 bg-white p-1 rounded mb-2">
-                                <span class="text-xs font-mono">${t.customer}</span>
-                            </div>
-                            <div class="p-4 flex-1">
-                                <h3 class="text-lg font-bold text-earth-green">${t.event}</h3>
-                                <p class="text-sm text-gray-600 mb-1">${t.date} | ${t.tier}</p>
-                                <p class="text-xs text-gray-500">Qty: ${t.qty} • Purchased: ${new Date(t.timestamp?.seconds * 1000).toLocaleDateString()}</p>
-                            </div>
-                        </div>
-                    `;
-                });
-            });
-        }
-
-        // --- CHECKOUT SYSTEM ---
-        window.initCheckout = (eventId) => {
-            const event = allEvents.find(e => e.id === eventId);
-            if(!event) return;
-            
-            window.currentCheckoutEvent = event;
-            window.selectedTier = null;
-            window.selectedQty = 1;
-            window.appliedPromo = null; 
-
-            document.getElementById('checkout-img').src = event.image || 'https://via.placeholder.com/800';
-            document.getElementById('checkout-title').innerText = event.title;
-            document.getElementById('checkout-date').innerText = new Date(event.date).toLocaleDateString('en-US', {weekday:'long', month:'long', day:'numeric'});
-            document.getElementById('checkout-location').innerText = event.location;
-            document.getElementById('checkout-time').innerText = event.time;
-            document.getElementById('qty-display').innerText = 1;
-            
-            const promoSec = document.getElementById('promo-section');
-            const promoInput = document.getElementById('promo-input');
-            const promoMsg = document.getElementById('promo-message');
-            promoInput.value = '';
-            promoMsg.innerText = '';
-            promoSec.classList.add('hidden');
-            if (event.promoCode && event.promoDiscount > 0) {
-                promoSec.classList.remove('hidden');
-            }
-
-            const tierContainer = document.getElementById('ticket-tiers-container');
-            tierContainer.innerHTML = '';
-            
-            if(event.tiers && event.tiers.length > 0) {
-                event.tiers.forEach((tier, index) => {
-                    const tierId = `tier-${index}`;
-                    tierContainer.innerHTML += `
-                        <label class="block relative border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-earth-green transition bg-gray-50 tier-option" id="label-${tierId}">
-                            <input type="radio" name="ticket_tier" value="${index}" class="absolute top-4 right-4 text-earth-green focus:ring-earth-green" onchange="window.selectTier(${index})">
-                            <div class="pr-8">
-                                <span class="block text-sm font-bold text-gray-800">${tier.name}</span>
-                                <span class="block text-xl font-bold text-earth-green">$${tier.price}</span>
-                                <span class="block text-xs text-gray-500 mt-1">${tier.capacity || 'Limited'} remaining</span>
-                            </div>
-                        </label>
-                    `;
-                });
-                document.querySelector(`input[name="ticket_tier"]`).click();
-            } else {
-                tierContainer.innerHTML = '<p class="text-red-500 text-sm">No ticket tiers defined.</p>';
-            }
-
-            document.getElementById('paypal-button-container').innerHTML = '';
-            document.getElementById('paypal-button-container').classList.remove('hidden');
-            document.getElementById('payment-success').classList.add('hidden');
-            document.getElementById('checkout-modal').classList.remove('hidden');
-        };
-
-        window.selectTier = (index) => {
-            const tiers = window.currentCheckoutEvent.tiers;
-            window.selectedTier = tiers[index];
-            document.querySelectorAll('.tier-option').forEach(el => el.classList.remove('border-earth-green', 'bg-blue-50'));
-            document.getElementById(`label-tier-${index}`).classList.add('border-earth-green', 'bg-blue-50');
-            updateTotal();
-            renderPayPalButton();
-        };
-
-        window.changeQty = (delta) => {
-            const newQty = window.selectedQty + delta;
-            if(newQty > 0 && newQty <= 10) { 
-                window.selectedQty = newQty;
-                document.getElementById('qty-display').innerText = window.selectedQty;
-                updateTotal();
-                const fallbackBtn = document.getElementById('fallback-pay-btn');
-                if (fallbackBtn) {
-                    fallbackBtn.innerText = `Pay $${window.calculatedTotal.toFixed(2)} (Test Mode)`;
-                } else {
-                    renderPayPalButton();
-                }
-            }
-        };
-
-        window.applyPromoCode = () => {
-            const input = document.getElementById('promo-input').value.trim().toUpperCase();
-            const msg = document.getElementById('promo-message');
-            const event = window.currentCheckoutEvent;
-
-            if (event.promoCode && input === event.promoCode) {
-                window.appliedPromo = { code: event.promoCode, discount: event.promoDiscount };
-                msg.innerText = `Success! ${event.promoDiscount}% Discount Applied.`;
-                msg.className = "text-xs mt-1 h-4 text-green-600 font-bold";
-            } else {
-                window.appliedPromo = null;
-                msg.innerText = "Invalid Promo Code.";
-                msg.className = "text-xs mt-1 h-4 text-red-500 font-bold";
-            }
-            updateTotal();
-            renderPayPalButton();
-        };
-
-        function updateTotal() {
-            if(!window.selectedTier) return;
-            const event = window.currentCheckoutEvent;
-            
-            const subtotal = parseFloat(window.selectedTier.price) * window.selectedQty;
-            
-            let discountAmt = 0;
-            if (window.appliedPromo) {
-                discountAmt = subtotal * (window.appliedPromo.discount / 100);
-            }
-
-            const taxBase = subtotal - discountAmt;
-            const taxRate = event.tax || 0; 
-            const taxAmt = taxBase * (taxRate / 100);
-
-            const total = taxBase + taxAmt;
-            window.calculatedTotal = total;
-
-            document.getElementById('summ-subtotal').innerText = '$' + subtotal.toFixed(2);
-            
-            const discRow = document.getElementById('summ-discount-row');
-            if (discountAmt > 0) {
-                discRow.classList.remove('hidden');
-                document.getElementById('summ-discount').innerText = '-$' + discountAmt.toFixed(2);
-            } else {
-                discRow.classList.add('hidden');
-            }
-
-            const taxRow = document.getElementById('summ-tax-row');
-            if (taxAmt > 0) {
-                taxRow.classList.remove('hidden');
-                document.getElementById('summ-tax-rate').innerText = `(${taxRate}%)`;
-                document.getElementById('summ-tax').innerText = '$' + taxAmt.toFixed(2);
-            } else {
-                taxRow.classList.add('hidden');
-            }
-
-            document.getElementById('checkout-total-display').innerText = '$' + total.toFixed(2);
-        }
-
-        window.handleTransactionSuccess = (details) => {
-            const email = details.payer.email_address || document.getElementById('fallback-email')?.value || "guest@example.com";
-            const qty = window.selectedQty;
-            
-            document.getElementById('paypal-button-container').classList.add('hidden');
-            document.getElementById('payment-success').classList.remove('hidden');
-            document.getElementById('payment-success').classList.add('flex');
-            document.getElementById('success-email').innerText = email;
-
-            const ticketsContainer = document.getElementById('generated-tickets-container');
-            ticketsContainer.innerHTML = '';
-
-            for(let i=0; i < qty; i++) {
-                const custId = "CUST-" + Math.random().toString(36).substr(2, 9).toUpperCase();
-                
-                const ticketData = {
-                    event: window.currentCheckoutEvent.title,
-                    tier: window.selectedTier.name,
-                    qty: 1, 
-                    date: window.currentCheckoutEvent.date,
-                    customer: custId
-                };
-
-                if (currentUser) {
-                    addDoc(collection(db, "tickets"), {
-                        ...ticketData,
-                        userId: currentUser.uid,
-                        timestamp: new Date()
-                    }).catch(err => console.error("Error saving ticket to DB:", err));
-                }
-
-                const qrData = encodeURIComponent(custId);
-                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${qrData}`;
-
-                ticketsContainer.innerHTML += `
-                    <div class="bg-white border border-gray-200 rounded-xl shadow-lg p-6 w-full max-w-sm relative overflow-hidden mx-auto ticket-card" id="ticket-card-${i}">
-                        <div class="absolute top-0 left-0 w-full h-2 bg-earth-green"></div>
-                        <div class="flex justify-between items-start mb-2">
-                            <div>
-                                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Ticket #${i+1}</p>
-                                <p class="text-lg font-mono font-bold text-earth-brown mb-1">${custId}</p>
-                            </div>
-                            <button onclick="window.downloadSingleTicket('ticket-card-${i}', '${custId}')" class="text-earth-blue hover:text-earth-green" title="Download">
-                                <i class="ph ph-download-simple text-xl"></i>
-                            </button>
-                        </div>
-                        <div class="flex justify-center mb-4">
-                            <img src="${qrUrl}" alt="Ticket QR" class="w-32 h-32 border-4 border-white shadow-sm rounded-md">
-                        </div>
-                        <p class="text-xs text-gray-500 mb-1">Admit One</p>
-                        <h4 class="text-xl font-bold text-earth-green">${window.selectedTier.name}</h4>
-                        <p class="text-xs text-gray-400 mt-1">${window.currentCheckoutEvent.title}</p>
-                    </div>
-                `;
-            }
-        };
-
-        window.downloadSingleTicket = async (elementId, custId) => {
-            const card = document.getElementById(elementId);
-            const img = card.querySelector('img');
-            const url = img.src;
-            try {
-                const response = await fetch(url);
-                const blob = await response.blob();
-                const localUrl = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = localUrl;
-                a.download = `TEPE-Ticket-${custId}.png`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(localUrl);
-            } catch (e) {
-                window.open(url, '_blank');
-            }
-        };
-
-        window.fallbackPaymentUI = function(container) {
-             const total = window.calculatedTotal.toFixed(2);
-             container.innerHTML = `
-                <div class="bg-yellow-50 border border-yellow-200 p-3 rounded mb-3 text-xs text-yellow-800">
-                    <strong class="block mb-1">Preview Environment Restriction</strong>
-                    PayPal's security blocked the live button here. Use this to test the ticket generator:
-                </div>
-                <input type="email" id="fallback-email" placeholder="Enter email for receipt" class="w-full mb-2 p-2 border rounded text-sm">
-                <button id="fallback-pay-btn" onclick="window.mockPaymentSuccess()" class="w-full bg-earth-blue hover:bg-blue-600 text-white font-bold py-3 rounded shadow transition">
-                    Pay $${total} (Test Mode)
-                </button>
-            `;
-        };
-
-        window.mockPaymentSuccess = () => {
-             const email = document.getElementById('fallback-email').value;
-             if(!email) { alert("Please enter an email for the simulation."); return; }
-             window.handleTransactionSuccess({ 
-                 id: "TEST-" + Date.now(), 
-                 payer: { email_address: email, name: { given_name: "Test User" } } 
-             });
-        }
-
-        function renderPayPalButton() {
-            const container = document.getElementById('paypal-button-container');
-            container.innerHTML = ''; 
-
-            if(!window.selectedTier) return;
-
-            if (window.paypalLoadError || window.paypalBootstrapError || typeof paypal === 'undefined') {
-                window.fallbackPaymentUI(container);
-                return;
-            }
-
-            try {
-                paypal.Buttons({
-                    style: { shape: 'rect', color: 'blue', layout: 'vertical', label: 'checkout' },
-                    createOrder: function(data, actions) {
-                        const total = (parseFloat(window.selectedTier.price) * window.selectedQty).toFixed(2);
-                        return actions.order.create({
-                            application_context: { shipping_preference: 'NO_SHIPPING' },
-                            purchase_units: [{
-                                description: `${window.currentCheckoutEvent.title} - ${window.selectedTier.name} (x${window.selectedQty})`,
-                                amount: { value: window.calculatedTotal.toFixed(2) } 
-                            }]
-                        });
-                    },
-                    onApprove: function(data, actions) {
-                        return actions.order.capture().then(function(details) {
-                            window.handleTransactionSuccess(details);
-                        });
-                    },
-                    onError: function (err) {
-                        console.error("PayPal Widget Error:", err);
-                        container.innerHTML = ''; 
-                        window.fallbackPaymentUI(container);
-                    }
-                }).render('#paypal-button-container').catch(err => {
-                     console.warn("PayPal render failed:", err);
-                     window.fallbackPaymentUI(container);
-                });
-            } catch(err) {
-                console.warn("PayPal init failed:", err);
-                window.fallbackPaymentUI(container);
-            }
-        }
-
-        window.closeCheckout = () => {
-            document.getElementById('checkout-modal').classList.add('hidden');
-            document.getElementById('payment-success').classList.add('hidden');
-            document.getElementById('payment-success').classList.remove('flex');
-            document.getElementById('paypal-button-container').classList.remove('hidden');
-        };
-
+        // --- CALENDAR LOGIC (FIXED) ---
         window.changeMonth = (d) => { calendarDate.setMonth(calendarDate.getMonth() + d); renderCalendar(); };
         function renderCalendar() {
             const grid = document.getElementById('calendar-grid');
@@ -1025,95 +356,273 @@
             const y = calendarDate.getFullYear(), m = calendarDate.getMonth();
             display.innerText = new Date(y, m).toLocaleString('default', {month:'long', year:'numeric'});
             const firstDay = new Date(y, m, 1).getDay(), daysInMonth = new Date(y, m+1, 0).getDate();
-            for(let i=0; i<firstDay; i++) grid.innerHTML+=`<div class="bg-gray-50 border-b border-r border-gray-100"></div>`;
+            
+            // Empty cells for days before start of month
+            for(let i=0; i<firstDay; i++) grid.innerHTML+=`<div class="bg-gray-50 border-b border-r border-gray-100 min-h-[80px]"></div>`;
+            
             for(let i=1; i<=daysInMonth; i++) {
+                // Find events for this day
                 const dayEvts = allEvents.filter(e => {
                     if (!e.date) return false;
-                    const [ey, em, ed] = e.date.split('-').map(Number);
-                    return ey === y && (em - 1) === m && ed === i;
+                    // Fix: Ensure we compare properly across timezones or just string match parts
+                    const parts = e.date.split('-'); // "2025-05-15" -> ["2025", "05", "15"]
+                    return parseInt(parts[0]) === y && (parseInt(parts[1]) - 1) === m && parseInt(parts[2]) === i;
                 });
+                
                 let content = `<span class="text-sm font-bold text-gray-700">${i}</span>`;
                 if(dayEvts.length>0) {
                     content += `<div class="flex gap-1 mt-1 flex-wrap">`;
                     dayEvts.forEach(()=>content+=`<div class="w-1.5 h-1.5 bg-earth-green rounded-full"></div>`);
                     content += `</div>`;
                 }
-                grid.innerHTML += `<div class="calendar-day border-b border-r border-gray-100 p-2 ${dayEvts.length?'cursor-pointer hover:bg-blue-50':''}" onclick="${dayEvts.length?`window.openDayModal('${y}-${m+1}-${i}')`:''}">${content}</div>`;
+                
+                // Add click handler only if events exist
+                const clickHandler = dayEvts.length ? `onclick="window.openDayModal('${y}-${m+1}-${i}')"` : '';
+                const cursorClass = dayEvts.length ? 'cursor-pointer hover:bg-blue-50' : '';
+                
+                grid.innerHTML += `<div class="calendar-day border-b border-r border-gray-100 p-2 min-h-[80px] ${cursorClass}" ${clickHandler}>${content}</div>`;
             }
         }
+
         window.openDayModal = (ds) => {
             const [y,m,d] = ds.split('-').map(Number);
             const evts = allEvents.filter(e => {
-                const [ey, em, ed] = e.date.split('-').map(Number);
-                return ey === y && em === m && ed === d;
+                if(!e.date) return false;
+                const parts = e.date.split('-');
+                return parseInt(parts[0]) === y && parseInt(parts[1]) === m && parseInt(parts[2]) === d;
             });
             if(evts.length===0) return;
+            
             const list = document.getElementById('modal-event-list');
             list.innerHTML='';
+            const dateTitle = new Date(y, m-1, d).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+            document.getElementById('modal-date-title').innerText = dateTitle;
+
             evts.forEach(e => {
-                list.innerHTML+=`<div class="border-b pb-2 mb-2"><h4 class="font-bold text-earth-green">${e.title}</h4><p class="text-xs text-gray-500">${e.time}</p><button onclick="document.getElementById('event-modal').classList.add('hidden');window.initCheckout('${e.id}')" class="mt-2 text-xs bg-black text-white px-2 py-1 rounded">Buy Ticket</button></div>`;
+                list.innerHTML+=`
+                    <div class="border-b pb-3 mb-3 last:border-0 last:mb-0">
+                        <h4 class="font-bold text-earth-green text-lg">${e.title}</h4>
+                        <div class="flex items-center text-xs text-gray-500 mt-1 mb-2">
+                            <i class="ph ph-clock mr-1"></i> ${e.time} 
+                            <span class="mx-2">•</span> 
+                            <i class="ph ph-map-pin mr-1"></i> ${e.location}
+                        </div>
+                        <button onclick="document.getElementById('event-modal').classList.add('hidden');window.initCheckout('${e.id}')" class="w-full bg-black text-white px-3 py-2 rounded text-sm font-bold hover:bg-gray-800 transition">Get Tickets</button>
+                    </div>`;
             });
             document.getElementById('event-modal').classList.remove('hidden');
         };
 
+        // --- CHECKOUT LOGIC ---
+        window.initCheckout = (eventId) => {
+            const evt = allEvents.find(e => e.id === eventId);
+            if(!evt) return;
+            window.currentCheckoutEvent = evt;
+            window.selectedTier = null;
+            window.selectedQty = 1;
+            
+            document.getElementById('checkout-img').src = evt.image;
+            document.getElementById('checkout-title').innerText = evt.title;
+            document.getElementById('checkout-date').innerText = evt.date;
+            document.getElementById('checkout-location').innerText = evt.location;
+            document.getElementById('qty-display').innerText = 1;
+            
+            // Reset UI
+            document.getElementById('checkout-error').classList.add('hidden');
+            document.getElementById('processing-overlay').classList.add('hidden');
+            document.getElementById('paypal-button-container').innerHTML = '';
+            document.getElementById('paypal-button-container').classList.remove('hidden');
+            document.getElementById('payment-success').classList.add('hidden');
+            
+            // Render Tiers
+            const tc = document.getElementById('ticket-tiers-container');
+            tc.innerHTML = '';
+            if(evt.tiers) {
+                evt.tiers.forEach((t, i) => {
+                    tc.innerHTML += `<label class="block border rounded p-3 cursor-pointer hover:border-blue-500 tier-option" id="tier-${i}">
+                        <input type="radio" name="tier" value="${i}" class="hidden" onchange="window.selectTier(${i})">
+                        <div class="flex justify-between font-bold"><span>${t.name}</span><span>$${t.price}</span></div>
+                    </label>`;
+                });
+                if(evt.tiers.length) window.selectTier(0); // Auto-select first
+            }
+            
+            document.getElementById('checkout-modal').classList.remove('hidden');
+        };
+
+        window.selectTier = (i) => {
+            window.selectedTier = window.currentCheckoutEvent.tiers[i];
+            document.querySelectorAll('.tier-option').forEach(e => e.classList.remove('border-earth-green', 'bg-blue-50'));
+            document.getElementById(`tier-${i}`).classList.add('border-earth-green', 'bg-blue-50');
+            updateTotal();
+            renderPayPal();
+        };
+
+        window.changeQty = (d) => {
+            const n = window.selectedQty + d;
+            if(n > 0) { window.selectedQty = n; document.getElementById('qty-display').innerText = n; updateTotal(); }
+        };
+
+        function updateTotal() {
+            if(!window.selectedTier) return;
+            const sub = parseFloat(window.selectedTier.price) * window.selectedQty;
+            window.calculatedTotal = sub; // Add tax logic if needed
+            document.getElementById('summ-subtotal').innerText = '$' + sub.toFixed(2);
+            document.getElementById('checkout-total-display').innerText = '$' + sub.toFixed(2);
+        }
+
+        function renderPayPal() {
+            const container = document.getElementById('paypal-button-container');
+            container.innerHTML = '';
+            
+            // PRODUCTION PAYPAL INTEGRATION
+            paypal.Buttons({
+                style: { shape: 'rect', color: 'black', layout: 'vertical', label: 'pay' },
+                createOrder: (data, actions) => {
+                    // LOCK UI ON START
+                    document.getElementById('processing-overlay').classList.remove('hidden');
+                    return actions.order.create({
+                        application_context: {
+                            shipping_preference: 'NO_SHIPPING', // DISABLES SHIPPING ADDRESS COLLECTION
+                            brand_name: 'T.E.P.E.'
+                        },
+                        purchase_units: [{
+                            description: `${window.currentCheckoutEvent.title} Ticket`,
+                            amount: { value: window.calculatedTotal.toFixed(2) }
+                        }]
+                    });
+                },
+                onApprove: (data, actions) => {
+                    return actions.order.capture().then(details => {
+                        window.handleSuccess(details);
+                    });
+                },
+                onCancel: () => {
+                    document.getElementById('processing-overlay').classList.add('hidden');
+                    showError("Transaction Cancelled");
+                },
+                onError: (err) => {
+                    console.error(err);
+                    document.getElementById('processing-overlay').classList.add('hidden');
+                    showError("Transaction Failed. Please try a different card.");
+                }
+            }).render('#paypal-button-container');
+        }
+
+        window.handleSuccess = (details) => {
+            document.getElementById('processing-overlay').classList.add('hidden');
+            document.getElementById('paypal-button-container').classList.add('hidden');
+            document.getElementById('payment-success').classList.remove('hidden');
+            document.getElementById('payment-success').classList.add('flex');
+            document.getElementById('success-email').innerText = details.payer.email_address;
+            
+            // Create Ticket in DB
+            const custId = "TIX-" + Math.random().toString(36).substr(2, 9).toUpperCase();
+            if(currentUser) {
+                addDoc(collection(db, "tickets"), {
+                    event: window.currentCheckoutEvent.title,
+                    tier: window.selectedTier.name,
+                    qty: window.selectedQty,
+                    customer: custId,
+                    userId: currentUser.uid,
+                    timestamp: new Date()
+                });
+            }
+            
+            // Generate Visual Ticket
+            const qr = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${custId}`;
+            document.getElementById('generated-tickets-container').innerHTML = `
+                <div class="bg-white border rounded-lg p-4 shadow-md text-center">
+                    <p class="font-mono font-bold text-lg mb-2">${custId}</p>
+                    <img src="${qr}" class="mx-auto border-4 border-white shadow-sm mb-2">
+                    <p class="text-sm font-bold text-earth-green">${window.selectedTier.name} (x${window.selectedQty})</p>
+                </div>
+            `;
+        };
+
+        function showError(msg) {
+            const el = document.getElementById('checkout-error');
+            el.innerText = msg;
+            el.classList.remove('hidden');
+        }
+
+        window.closeCheckout = () => document.getElementById('checkout-modal').classList.add('hidden');
+
+        // --- AUTH & MISC ---
         let isBuyerLogin = true;
         window.toggleBuyerModal = () => { document.getElementById('buyer-modal').classList.toggle('hidden'); isBuyerLogin=true; updUI(); };
         window.toggleBuyerAuthMode = () => { isBuyerLogin=!isBuyerLogin; updUI(); };
         function updUI() {
-            const t = document.getElementById('buyer-auth-title'), b = document.getElementById('buyer-submit-btn'), l = document.getElementById('buyer-toggle-link');
-            const mobileBtn = document.getElementById('mobile-buyer-login-btn');
-            const mobileProfile = document.getElementById('mobile-buyer-profile');
-            const mobileEmail = document.getElementById('mobile-buyer-email-display');
-
-            if(isBuyerLogin) { t.innerText="Fan Login"; b.innerText="Sign In"; l.innerText="Join the Tribe"; }
-            else { t.innerText="Join the Tribe"; b.innerText="Create Account"; l.innerText="Login"; }
+            document.getElementById('buyer-auth-title').innerText = isBuyerLogin ? "Fan Login" : "Join Tribe";
+            document.getElementById('buyer-submit-btn').innerText = isBuyerLogin ? "Sign In" : "Sign Up";
         }
-        window.handleBuyerAuth = async (e) => {
+        document.getElementById('buyer-auth-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const em = document.getElementById('buyer-email').value, pw = document.getElementById('buyer-password').value;
+            const em = document.getElementById('buyer-email').value;
+            const pw = document.getElementById('buyer-password').value;
             try {
                 if(isBuyerLogin) await signInWithEmailAndPassword(auth, em, pw);
                 else await createUserWithEmailAndPassword(auth, em, pw);
                 window.toggleBuyerModal();
-            } catch(err) { alert(err.message); }
-        };
+            } catch(e) { alert(e.message); }
+        });
         window.logoutBuyer = () => signOut(auth);
-        document.getElementById('buyer-auth-form').addEventListener('submit', window.handleBuyerAuth);
-        
-        onAuthStateChanged(auth, async (u) => {
-            currentUser = u;
-            const dBtn = document.getElementById('buyer-login-btn');
-            const dProf = document.getElementById('buyer-profile');
-            const dEmail = document.getElementById('buyer-email-display');
-            const mBtn = document.getElementById('mobile-buyer-login-btn');
-            const mProf = document.getElementById('mobile-buyer-profile');
-            const mEmail = document.getElementById('mobile-buyer-email-display');
 
-            if(u) { 
-                await verifyAccountIdentity(u);
-                dBtn.classList.add('hidden'); dProf.classList.remove('hidden'); dProf.classList.add('flex'); dEmail.innerText=u.email; 
-                if(mBtn) mBtn.classList.add('hidden'); 
-                if(mProf) { mProf.classList.remove('hidden'); mProf.classList.add('flex'); mEmail.innerText=u.email; }
-                loadMyTickets();
-            }
-            else { 
-                dBtn.classList.remove('hidden'); dProf.classList.add('hidden'); dProf.classList.remove('flex'); 
-                if(mBtn) mBtn.classList.remove('hidden'); 
-                if(mProf) { mProf.classList.add('hidden'); mProf.classList.remove('flex'); }
+        onAuthStateChanged(auth, u => {
+            currentUser = u;
+            if(u) {
+                document.getElementById('buyer-login-btn').classList.add('hidden');
+                document.getElementById('buyer-profile').classList.remove('hidden');
+                document.getElementById('buyer-profile').classList.add('flex');
+                document.getElementById('buyer-email-display').innerText = u.email;
+                document.getElementById('mobile-buyer-login-btn').classList.add('hidden');
+                document.getElementById('mobile-buyer-profile').classList.remove('hidden');
+                document.getElementById('mobile-buyer-profile').classList.add('flex');
+                document.getElementById('mobile-buyer-email-display').innerText = u.email;
+                // Load My Tickets
+                const tc = document.getElementById('my-tickets-list');
+                onSnapshot(query(collection(db, 'tickets'), where('userId', '==', u.uid)), s => {
+                    tc.innerHTML = '';
+                    if(s.empty) tc.innerHTML = '<div class="text-center py-4 text-gray-500">No tickets yet.</div>';
+                    s.forEach(d => {
+                        const t = d.data();
+                        const qr = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${t.customer}`;
+                        tc.innerHTML += `<div class="flex border rounded p-2 mb-2"><img src="${qr}" class="w-16 h-16 mr-4"><div><h4 class="font-bold">${t.event}</h4><p class="text-xs">${t.tier}</p></div></div>`;
+                    });
+                });
+            } else {
+                document.getElementById('buyer-login-btn').classList.remove('hidden');
+                document.getElementById('buyer-profile').classList.add('hidden');
+                document.getElementById('mobile-buyer-login-btn').classList.remove('hidden');
+                document.getElementById('mobile-buyer-profile').classList.add('hidden');
             }
         });
 
+        // AI
+        window.toggleAIChat = () => document.getElementById('ai-chat-window').classList.toggle('hidden');
+        window.sendAIMessage = async () => {
+            const i = document.getElementById('ai-input');
+            const m = i.value; i.value = '';
+            document.getElementById('ai-messages').innerHTML += `<div class="p-2 mb-2 bg-blue-50 text-right rounded">${m}</div>`;
+            try {
+                const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+                const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+                const r = await model.generateContent(`System: TEPE Event Helper. Data: ${JSON.stringify(allEvents)}. Q: ${m}`);
+                document.getElementById('ai-messages').innerHTML += `<div class="p-2 mb-2 bg-green-50 text-left rounded">${r.response.text()}</div>`;
+            } catch(e) { console.error(e); }
+        };
+
         const imgs = ['tepe01.jpg', 'tepe02.jpg', 'tepe03.jpg', 'tepe04.jpg', 'tepe05.jpg'];
-        const fb = ['https://images.unsplash.com/photo-1459749411177-29432dc29afa?w=1920', 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1920', 'https://images.unsplash.com/photo-1533174072545-e8d4aa97edf9?w=1920', 'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=1920', 'https://images.unsplash.com/photo-1506157786151-b8491531f063?w=1920'];
         const ctr = document.getElementById('hero-carousel');
         imgs.forEach((s,i) => {
             const img = document.createElement('img'); img.src=s; img.className=`absolute inset-0 w-full h-full object-cover carousel-image ${i===0?'opacity-100':'opacity-0'}`;
-            img.onerror = function() { this.src = fb[i%fb.length]; this.onerror=null; };
+            img.onerror = function() { this.src = 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=1920'; this.onerror=null; };
             ctr.appendChild(img);
         });
         let ci = 0; setInterval(() => { const el = ctr.querySelectorAll('img'); if(el.length){ el[ci].classList.remove('opacity-100'); el[ci].classList.add('opacity-0'); ci=(ci+1)%el.length; el[ci].classList.remove('opacity-0'); el[ci].classList.add('opacity-100'); } }, 5000);
 
         initRealtimeListener();
+        renderCalendar(); // Initial empty render
     </script>
 </body>
 </html>
