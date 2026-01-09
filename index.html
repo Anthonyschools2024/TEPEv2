@@ -23,6 +23,9 @@
     <!-- PayPal SDK (Production Config) -->
     <script src="https://www.paypal.com/sdk/js?client-id=AbIM8PI16Q_0SuzeJ3s6tDNwhIYd-iH0PeSuIrbyi7ihtBCJ9etdGr0p0jukSDc26Oxlk08PvO0fUKk0&currency=USD&components=buttons&disable-funding=credit,paylater" onerror="console.error('PayPal SDK Failed to Load')"></script>
     
+    <!-- Google Maps API (Interactive Map) -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBIb8iida2vh3blStm_l9p6ewTqncaGLUg&libraries=places&loading=async"></script>
+
     <script>
         tailwind.config = {
             theme: {
@@ -65,6 +68,7 @@
                 <div class="hidden md:flex items-center space-x-4">
                     <a href="#home" class="hover:bg-earth-green px-3 py-2 rounded-md text-sm font-medium transition">Home</a>
                     <a href="#events" class="hover:bg-earth-green px-3 py-2 rounded-md text-sm font-medium transition">Events</a>
+                    <a href="#map-section" class="hover:bg-earth-green px-3 py-2 rounded-md text-sm font-medium transition">Map</a>
                     <a href="#calendar" class="hover:bg-earth-green px-3 py-2 rounded-md text-sm font-medium transition">Calendar</a>
                     <a href="organizer.html" target="_blank" class="border border-earth-green text-earth-green hover:bg-earth-green hover:text-white px-4 py-2 rounded-md text-sm font-bold transition ml-2">Become An Organizer</a>
                     <button id="buyer-login-btn" onclick="toggleBuyerModal()" class="bg-earth-green hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-bold shadow-md transition ml-2">Fan Login</button>
@@ -86,6 +90,7 @@
         <div id="mobile-menu" class="hidden md:hidden bg-earth-brown border-t border-gray-800 pb-4">
             <a href="#home" class="block px-4 py-3 hover:bg-gray-800 border-b border-gray-800">Home</a>
             <a href="#events" class="block px-4 py-3 hover:bg-gray-800 border-b border-gray-800">Events</a>
+            <a href="#map-section" class="block px-4 py-3 hover:bg-gray-800 border-b border-gray-800">Map</a>
             <a href="#calendar" class="block px-4 py-3 hover:bg-gray-800 border-b border-gray-800">Calendar</a>
             <a href="organizer.html" target="_blank" class="block px-4 py-3 text-earth-green font-bold hover:bg-gray-800 border-b border-gray-800">Become An Organizer</a>
             <div class="px-4 py-4">
@@ -121,6 +126,24 @@
                 <div class="col-span-full text-center py-10">
                     <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-earth-green"></div>
                     <p class="mt-2 text-gray-500">Loading events...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Google Map Section (NEW) -->
+    <section id="map-section" class="py-20 bg-gray-50 border-t border-gray-200">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-bold text-earth-brown">Explore Event Map</h2>
+                <p class="text-gray-500 mt-2">Find experiences happening near you.</p>
+            </div>
+            <div class="w-full h-[500px] rounded-2xl shadow-xl overflow-hidden border border-gray-300 relative">
+                <div id="event-map" class="w-full h-full"></div>
+                <!-- Loading Overlay -->
+                <div id="map-loading" class="absolute inset-0 bg-white/80 z-10 flex flex-col items-center justify-center">
+                    <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-earth-green mb-2"></div>
+                    <p class="text-sm font-bold text-gray-600">Locating Events...</p>
                 </div>
             </div>
         </div>
@@ -307,6 +330,11 @@
         window.calculatedTotal = 0;
         let currentUser = null;
         const GEMINI_API_KEY = "AIzaSyAfhAJCGy_ZvoqQtlTxqlZCfkldtcNgdCU"; 
+        
+        // --- MAP VARIABLES ---
+        let map;
+        let geocoder;
+        let markers = [];
 
         // --- EVENTS LISTENER ---
         function initRealtimeListener() {
@@ -328,6 +356,7 @@
                     }
 
                     // --- GENERATING CARD WITH BUTTON ---
+                    // Added Google Maps Link to Location
                     grid.innerHTML += `
                         <div class="bg-white rounded-xl overflow-hidden shadow-lg border border-slate-100 flex flex-col h-full hover:shadow-2xl transition group">
                             <div class="h-48 bg-gray-200 relative overflow-hidden">
@@ -336,15 +365,94 @@
                             </div>
                             <div class="p-6 flex flex-col flex-1">
                                 <h3 class="text-xl font-bold text-earth-brown mb-1">${evt.title}</h3>
-                                <p class="text-sm text-earth-green font-semibold mb-2"><i class="ph ph-map-pin mr-1"></i>${evt.location}</p>
+                                <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(evt.location)}" target="_blank" class="text-sm text-earth-green font-semibold mb-2 block hover:underline"><i class="ph ph-map-pin mr-1"></i>${evt.location}</a>
                                 <p class="text-xs text-gray-500 mb-3"><i class="ph ph-tag mr-1"></i>${priceDisplay}</p>
                                 <p class="text-gray-600 text-sm mb-4 line-clamp-2">${evt.description}</p>
                                 <button onclick="window.initCheckout('${evt.id}')" class="w-full bg-black hover:bg-gray-800 text-white py-3 rounded-lg font-bold shadow transition mt-auto block">Get Tickets</button>
                             </div>
                         </div>`;
                 });
-                renderCalendar(); // FIXED: Force calendar update when events load
+                renderCalendar(); 
+                updateMapMarkers(); // Update map markers when data loads
             });
+        }
+
+        // --- GOOGLE MAPS INTEGRATION ---
+        // Initialize Map
+        window.initMap = function() {
+            const defaultLocation = { lat: 36.1540, lng: -95.9928 }; // Default to Tulsa
+            map = new google.maps.Map(document.getElementById("event-map"), {
+                zoom: 10,
+                center: defaultLocation,
+                mapId: "DEMO_MAP_ID", // Required for advanced markers if used, standard is fine
+                streetViewControl: false,
+                mapTypeControl: false
+            });
+            geocoder = new google.maps.Geocoder();
+        };
+
+        // Geocode and Place Markers
+        function updateMapMarkers() {
+            if (!map || !geocoder) {
+                // Retry if map isn't ready yet (race condition with script load)
+                if (typeof google !== 'undefined' && typeof google.maps !== 'undefined' && !map) {
+                    window.initMap();
+                } else if (typeof google === 'undefined') {
+                    setTimeout(updateMapMarkers, 500); 
+                    return;
+                }
+            }
+            
+            // Clear existing markers
+            markers.forEach(m => m.setMap(null));
+            markers = [];
+            
+            document.getElementById('map-loading').classList.remove('hidden');
+
+            let processedCount = 0;
+            
+            allEvents.forEach((evt, index) => {
+                // Rate limiting prevention: Stagger calls slightly
+                setTimeout(() => {
+                    geocoder.geocode({ 'address': evt.location }, function(results, status) {
+                        processedCount++;
+                        if (status === 'OK') {
+                            const marker = new google.maps.Marker({
+                                map: map,
+                                position: results[0].geometry.location,
+                                title: evt.title,
+                                animation: google.maps.Animation.DROP
+                            });
+
+                            const infoWindow = new google.maps.InfoWindow({
+                                content: `
+                                    <div class="p-2 max-w-[200px]">
+                                        <h4 class="font-bold text-sm mb-1">${evt.title}</h4>
+                                        <p class="text-xs text-gray-500 mb-1">${evt.date}</p>
+                                        <button onclick="window.initCheckout('${evt.id}')" class="bg-earth-green text-white text-xs px-3 py-1 rounded font-bold w-full">Get Tickets</button>
+                                    </div>
+                                `
+                            });
+
+                            marker.addListener("click", () => {
+                                infoWindow.open(map, marker);
+                            });
+                            
+                            markers.push(marker);
+                            
+                            // Center map on first result if valid
+                            if (index === 0) map.setCenter(results[0].geometry.location);
+                        }
+                        
+                        // Hide loading when done with all
+                        if (processedCount === allEvents.length) {
+                            document.getElementById('map-loading').classList.add('hidden');
+                        }
+                    });
+                }, index * 300); // 300ms delay between requests to avoid query limit
+            });
+            
+            if(allEvents.length === 0) document.getElementById('map-loading').classList.add('hidden');
         }
 
         // --- CALENDAR LOGIC (FIXED) ---
@@ -364,7 +472,6 @@
                 // Find events for this day
                 const dayEvts = allEvents.filter(e => {
                     if (!e.date) return false;
-                    // Fix: Ensure we compare properly across timezones or just string match parts
                     const parts = e.date.split('-'); // "2025-05-15" -> ["2025", "05", "15"]
                     return parseInt(parts[0]) === y && (parseInt(parts[1]) - 1) === m && parseInt(parts[2]) === i;
                 });
@@ -405,7 +512,7 @@
                         <div class="flex items-center text-xs text-gray-500 mt-1 mb-2">
                             <i class="ph ph-clock mr-1"></i> ${e.time} 
                             <span class="mx-2">•</span> 
-                            <i class="ph ph-map-pin mr-1"></i> ${e.location}
+                            <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(e.location)}" target="_blank" class="hover:underline text-blue-600"><i class="ph ph-map-pin mr-1"></i>${e.location}</a>
                         </div>
                         <button onclick="document.getElementById('event-modal').classList.add('hidden');window.initCheckout('${e.id}')" class="w-full bg-black text-white px-3 py-2 rounded text-sm font-bold hover:bg-gray-800 transition">Get Tickets</button>
                     </div>`;

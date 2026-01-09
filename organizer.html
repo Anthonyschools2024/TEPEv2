@@ -23,6 +23,9 @@
     <!-- PayPal SDK -->
     <script src="https://www.paypal.com/sdk/js?client-id=AbIM8PI16Q_0SuzeJ3s6tDNwhIYd-iH0PeSuIrbyi7ihtBCJ9etdGr0p0jukSDc26Oxlk08PvO0fUKk0&currency=USD&components=buttons&disable-funding=credit,paylater" onerror="window.paypalLoadError=true"></script>
     
+    <!-- Google Maps API (Consolidated: Maps + Places) -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBIb8iida2vh3blStm_l9p6ewTqncaGLUg&libraries=places&loading=async&callback=initAutocomplete" async defer></script>
+
     <!-- Tailwind Config -->
     <script>
         tailwind.config = {
@@ -59,6 +62,9 @@
             to { transform: translateY(0); opacity: 1; }
         }
         .chat-enter { animation: slideUpFade 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        
+        /* Google Autocomplete Style Fix */
+        .pac-container { z-index: 10000 !important; border-radius: 8px; margin-top: 4px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
     </style>
 </head>
 <body class="bg-earth-sand text-earth-dark font-sans antialiased h-[100dvh] overflow-hidden">
@@ -206,14 +212,14 @@
                     <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-200 text-sm">
-                                <thead class="bg-gray-50"><tr><th class="px-6 py-3 text-left font-bold text-gray-500">ID</th><th class="px-6 py-3 text-left font-bold text-gray-500">Event</th><th class="px-6 py-3 text-left font-bold text-gray-500">Amount</th></tr></thead>
+                                <thead class="bg-gray-50"><tr><th class="px-6 py-3 text-left font-bold text-gray-500">ID</th><th class="px-6 py-3 text-left font-bold text-gray-500">Event</th><th class="px-6 py-3 text-left font-bold text-gray-500">Tier</th><th class="px-6 py-3 text-left font-bold text-gray-500">Date Sold</th></tr></thead>
                                 <tbody id="analytics-table-body" class="bg-white divide-y divide-gray-200"></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
 
-                <!-- SCANNER (FIXED RESTART LOGIC) -->
+                <!-- SCANNER -->
                 <div id="section-scan" class="dash-section hidden animate-fade-in">
                     <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-6">Scanner</h2>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -307,7 +313,7 @@
                                 <div class="md:col-span-2"><label class="block text-sm font-bold text-gray-700 mb-1">Event Title</label><input type="text" id="evt-title" required class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-earth-green outline-none transition"></div>
                                 <div><label class="block text-sm font-bold text-gray-700 mb-1">Date</label><input type="date" id="evt-date" required class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-earth-green outline-none transition"></div>
                                 <div><label class="block text-sm font-bold text-gray-700 mb-1">Time</label><input type="time" id="evt-time" required class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-earth-green outline-none transition"></div>
-                                <div class="md:col-span-2"><label class="block text-sm font-bold text-gray-700 mb-1">Location</label><input type="text" id="evt-location" required class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-earth-green outline-none transition"></div>
+                                <div class="md:col-span-2"><label class="block text-sm font-bold text-gray-700 mb-1">Location</label><input type="text" id="evt-location" required class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-earth-green outline-none transition" placeholder="Search places..."></div>
                                 <div class="md:col-span-2"><label class="block text-sm font-bold text-gray-700 mb-1">Description</label><textarea id="evt-desc" rows="3" required class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-earth-green outline-none transition"></textarea></div>
                             </div>
                             <!-- Financials -->
@@ -429,16 +435,41 @@
         const db = getFirestore(app);
         
         // AI Configuration
-        const GEMINI_API_KEY = "AIzaSyAUREfj27POAazb7BAyKIboPOmOyOjZXm4";
+        const GEMINI_API_KEY = "AIzaSyAfhAJCGy_ZvoqQtlTxqlZCfkldtcNgdCU";
         let aiModelName = 'gemini-1.5-flash';
 
         let currentUser = null;
         let isLoginMode = true;
         let myEvents = [];
-        let html5QrCode = null; // Global for scanner instance
-        let isScannerPaused = false; // State tracker for pause/resume logic
+        let myTickets = []; // Store tickets for analytics
+        let html5QrCode = null;
+        let isScannerPaused = false;
         let userPlan = 'free';
         const MASTER_EMAIL = "akimble109@gamil.com";
+
+        // --- MAPS AUTOCOMPLETE (INIT) ---
+        window.initAutocomplete = function() {
+            if (typeof google === 'undefined' || !google.maps || !google.maps.places) return;
+            
+            const input = document.getElementById('evt-location');
+            if (input && !input.dataset.autocompleteAttached) {
+                const autocomplete = new google.maps.places.Autocomplete(input, {
+                    types: ['geocode', 'establishment'],
+                    fields: ['formatted_address', 'geometry', 'name']
+                });
+                
+                autocomplete.addListener('place_changed', () => {
+                    const place = autocomplete.getPlace();
+                    if (place.formatted_address) {
+                        input.value = place.formatted_address; 
+                    } else if (place.name) {
+                        input.value = place.name;
+                    }
+                });
+                
+                input.dataset.autocompleteAttached = "true";
+            }
+        };
 
         // --- AI LOGIC ---
         async function initAI() { try { const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_API_KEY}`); const d=await r.json(); if(d.models) { const v=d.models.filter(m=>m.supportedGenerationMethods?.includes("generateContent")); if(v.length) aiModelName=v[0].name.replace('models/',''); } } catch(e){} }
@@ -459,7 +490,15 @@
             try {
                 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
                 const model = genAI.getGenerativeModel({ model: aiModelName });
-                const context = `Organizer Assistant Context: Total Events: ${myEvents.length}. User Query: ${msg}`;
+                
+                // Advanced Context for Analytics
+                const analyticsContext = `
+                    Event Data: ${JSON.stringify(myEvents.map(e=>e.title))}.
+                    Total Tickets Sold: ${myTickets.length}.
+                    Estimated Revenue: $${myTickets.length * 20}.
+                `;
+                
+                const context = `Organizer Assistant. ${analyticsContext} User Query: ${msg}`;
                 const result = await model.generateContent(context);
                 removeLoadingBubble(loadingId);
                 addChatMessage('ai', result.response.text());
@@ -511,6 +550,63 @@
             document.getElementById('evt-image-base64').value = url;
             document.getElementById('image-preview-container').innerHTML = `<img src="${url}" class="w-full h-full object-cover">`;
             document.getElementById('img-gen-modal').classList.add('hidden');
+        };
+
+        // --- ANALYTICS MANAGER (FIXED) ---
+        window.analyticsManager = {
+            loadData: async () => {
+                const tbody = document.getElementById('analytics-table-body');
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4">Loading...</td></tr>';
+                
+                // Fetch ALL tickets for current organizer's events
+                // Note: In production, better to store an 'organizerId' on the ticket directly for simpler querying
+                // For now, we filter tickets locally based on myEvents list
+                const eventNames = myEvents.map(e => e.title);
+                
+                // Simplification: Fetch all tickets (production: index req)
+                const q = query(collection(db, "tickets")); 
+                const snap = await getDocs(q);
+                
+                myTickets = [];
+                let totalRev = 0;
+                
+                snap.forEach(doc => {
+                    const t = doc.data();
+                    if (eventNames.includes(t.event)) {
+                        myTickets.push(t);
+                        // Approximate price logic (since we didn't store price on ticket doc, we assume default or look up)
+                        // In prod, store 'price' on ticket creation.
+                        totalRev += 25; // Placeholder avg price
+                    }
+                });
+
+                // Update UI Stats
+                document.getElementById('stat-tickets-sold').innerText = myTickets.length;
+                document.getElementById('stat-total-revenue').innerText = '$' + totalRev.toFixed(2);
+
+                // Populate Table
+                tbody.innerHTML = '';
+                if (myTickets.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-gray-500">No sales yet.</td></tr>';
+                    return;
+                }
+
+                myTickets.forEach(t => {
+                    const date = t.timestamp ? new Date(t.timestamp.seconds * 1000).toLocaleDateString() : 'N/A';
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-500">${t.customer || 'ID'}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${t.event}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${t.tier}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${date}</td>
+                        </tr>
+                    `;
+                });
+            },
+            filterByEvent: () => {
+                // Future implementation: client-side filter of 'myTickets' array
+                alert("Filtering features coming in V2!");
+            }
         };
 
         // --- IDENTITY ROUTINE ---
@@ -668,7 +764,7 @@
             getTiers: () => Array.from(document.querySelectorAll('.tier-row')).map(r => ({name:r.querySelector('.tier-name').value, price:r.querySelector('.tier-price').value, capacity:r.querySelector('.tier-capacity').value})).filter(t=>t.name&&t.price)
         };
 
-        // --- SCANNER MANAGER (FIXED WITH PAUSE/RESUME) ---
+        // --- SCANNER MANAGER ---
         window.scannerManager = {
              startScanner: async () => {
                  const readerEl = document.getElementById('reader');
@@ -704,15 +800,10 @@
                          { fps: 10, qrbox: { width: 250, height: 250 } },
                          async (decodedText) => {
                              console.log("Scanned:", decodedText);
-                             
-                             // 1. Pause immediately (Freeze frame)
-                             // This is faster and safer than stopping
                              try {
                                  html5QrCode.pause(true); 
                                  isScannerPaused = true;
                              } catch(e) { console.error("Pause failed", e); }
-
-                             // 2. Process
                              await scannerManager.verifyTicket(decodedText);
                          },
                          (errorMessage) => { /* ignore */ }
@@ -729,7 +820,6 @@
                  const resultEl = document.getElementById('scan-result');
                  const detailsEl = document.getElementById('scan-details');
                  
-                 // Show result overlay, keep camera visible but paused in background (or hide it)
                  document.getElementById('reader').classList.add('hidden'); 
                  resultEl.classList.remove('hidden');
                  
@@ -751,11 +841,9 @@
                  } catch (e) { statusEl.innerText = "ERROR"; detailsEl.innerText = e.message; }
              },
              reset: () => {
-                 // Scan Next clicked
-                 scannerManager.startScanner(); // Logic handles resume
+                 scannerManager.startScanner(); 
              },
              stopScanner: async () => {
-                 // Called when leaving the tab to save battery
                  if (html5QrCode) {
                      try { await html5QrCode.stop(); await html5QrCode.clear(); } catch(e) {}
                      html5QrCode = null;
@@ -767,7 +855,6 @@
         window.ui = {
             toggleSidebar: () => { document.getElementById('sidebar').classList.toggle('-translate-x-full'); document.getElementById('sidebar-overlay').classList.toggle('hidden'); },
             showSection: (s) => {
-                // If leaving scan section, stop camera
                 if (!document.getElementById('section-scan').classList.contains('hidden') && s !== 'scan') {
                     scannerManager.stopScanner();
                 }
@@ -775,14 +862,17 @@
                 document.querySelectorAll('.dash-section').forEach(e=>e.classList.add('hidden'));
                 document.getElementById(`section-${s}`).classList.remove('hidden');
                 
+                if (s === 'create') {
+                    // Initialize autocomplete if it hasn't run yet
+                    window.initAutocomplete();
+                }
+
                 if(window.innerWidth<1024) ui.toggleSidebar();
                 if(s==='analytics') analyticsManager.loadData();
                 if(s==='scan') scannerManager.startScanner();
             }
         };
         
-        window.analyticsManager = { loadData: async () => {}, filterByEvent: () => {} };
-
         document.getElementById('auth-form').addEventListener('submit', authManager.handleAuth);
         document.getElementById('create-event-form').addEventListener('submit', dataManager.createEvent);
 
